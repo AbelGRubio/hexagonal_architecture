@@ -1,3 +1,11 @@
+import queue
+from typing import Any, Optional
+
+from pydantic import BaseModel, ValidationError
+
+from .thread_base import BaseWorkerThread
+
+
 class PaymentServiceThread(BaseWorkerThread[BaseModel, BaseModel]):
     """
     Hilo consumidor para el servicio de pagos (Payment Service).

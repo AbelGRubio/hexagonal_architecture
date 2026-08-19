@@ -1,3 +1,10 @@
+import queue
+from typing import Any, Optional
+
+from pydantic import BaseModel, ValidationError
+
+from .thread_base import BaseWorkerThread
+
 
 class NotificationServiceThread(BaseWorkerThread[BaseModel, BaseModel]):
     """

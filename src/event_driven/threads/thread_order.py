@@ -3,12 +3,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, ValidationError
 
-
-# Asumiendo que BaseWorkerThread está importado o en el mismo módulo
-# from base_worker import BaseWorkerThread
-# Y tus esquemas y lógicas de negocio:
-# from models import OrderCreated, CartItem, InventoryUpdated, PaymentProcessed
-# from services import OrderBusinessLogic, InventoryBusinessLogic, PaymentBusinessLogic, NotificationBusinessLogic
+from .thread_base import BaseWorkerThread
 
 
 class OrderServiceThread(BaseWorkerThread[BaseModel, BaseModel]):

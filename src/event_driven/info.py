@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import platform
-import subprocess  # noqa: S404  # noqa: ERA001
 import sys
 import time
 from collections.abc import Callable
@@ -14,7 +13,7 @@ from typing import Any, TypeVar
 import cpuinfo
 import psutil
 
-from observe_core.logger import get_logger
+from event_driven.logger import get_logger
 
 F = TypeVar("F", bound=Callable[..., Any])
 logger = get_logger(__name__)
