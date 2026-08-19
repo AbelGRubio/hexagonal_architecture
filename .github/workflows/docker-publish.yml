@@ -1,0 +1,43 @@
+# .github/workflows/docker-publish.yml
+name: Docker Image Build
+
+on:
+  workflow_call:
+#on:
+#  push:
+#    tags: [ 'v*.*.*' ] # Se activa cuando creas un tag de versión (ej: v1.0.0)
+#  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          tags: ${{ vars.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest

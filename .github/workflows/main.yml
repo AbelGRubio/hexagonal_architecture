@@ -1,0 +1,63 @@
+name: Master Pipeline
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+  workflow_call:
+    secrets:
+      PR_TOKEN_USER:
+        required: false
+
+
+jobs:
+  # 1. Ejecuta pre-commit
+  call-pre-commit:
+    uses: ./.github/workflows/pre-commit.yml
+
+  # 2. Si pre-commit pasa, ejecuta sonarqube
+#  call-sonarqube:
+#    needs: call-pre-commit
+#    uses: ./.github/workflows/sonarqube.yml
+#    secrets: inherit # Pasa automáticamente los secrets al archivo hijo
+
+  # 3. Si sonarqube pasa, ejecuta tests
+  call-test:
+    needs: call-pre-commit
+    uses: ./.github/workflows/test.yml
+
+  # 4. Si tests pasan, ejecuta semantic-release
+  call-release:
+    needs: call-test
+    if: github.event_name == 'push'
+    permissions:
+      contents: write   # Para crear el Tag y el Release
+      issues: write     # A veces Semantic Release comenta en issues
+      pull-requests: write
+      packages: write
+    uses: ./.github/workflows/semantic-release.yml
+    secrets: inherit
+
+  # 5. Nuevo Stage: Documentación
+  call-docs:
+    needs: call-release
+    permissions:
+      contents: write   # Para crear el Tag y el Release
+    uses: ./.github/workflows/docs.yml
+
+
+  # 6. Si release pasa, construye docker
+#  call-docker:
+#    needs: call-release
+#    if: github.event_name == 'push'
+#    uses: ./.github/workflows/docker-publish.yml
+#    secrets: inherit
+
+  # 7. Finalmente, el escaneo de seguridad
+#  call-zap:
+#    needs: call-docker
+#    if: github.event_name == 'push'
+#    uses: ./.github/workflows/owasp-zap.yml

@@ -1,0 +1,66 @@
+name: Pre-commit
+
+on:
+  workflow_call:
+#on:
+#  push:
+#    branches:
+#      - master
+#
+#  workflow_call:
+#    secrets:
+#      PR_TOKEN_USER:
+#        required: false
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1️⃣ Set PR token env
+      - name: Set PR token env
+        env:
+          PR_TOKEN_USER: ${{ secrets.PR_TOKEN_USER }}
+        run: echo "PR_TOKEN_USER=${PR_TOKEN_USER}" >> $GITHUB_ENV
+
+      # 2️⃣ Skip if triggered by bot user
+      - name: Skip if bot user
+        if: github.actor != env.PR_TOKEN_USER
+        run: echo "Running pre-commit"
+
+      # 3️⃣ Skip if commit message is a version (x.y.z)
+      - name: Block version commits
+        run: |
+          if [[ "${{ github.event.head_commit.message }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "Version commit detected. Skipping pre-commit."
+            exit 1
+          fi
+
+      # 4️⃣ Skip merge request / pull request events
+      - name: Block pull request events
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Pull request event detected. Skipping pre-commit."
+          exit 1
+
+      # 5️⃣ Skip tag builds
+      - name: Block tag builds
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          echo "Tag build detected. Skipping pre-commit."
+          exit 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Sync dependencies
+        run: uv sync
+
+      # 6️⃣ Run pre-commit
+      - name: Run pre-commit
+        run: uv run pre-commit run --all-files
