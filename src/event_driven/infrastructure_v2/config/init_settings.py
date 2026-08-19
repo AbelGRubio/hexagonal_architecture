@@ -5,7 +5,8 @@ from functools import lru_cache
 from pathlib import Path
 
 import yaml
-from event_driven.models.schemas import GeneralSettings, ProcessSettings
+
+from event_driven.infrastructure.config.schemas import GeneralSettings, ProcessSettings
 
 
 def _read_yaml(config_path: Path) -> dict:

@@ -2,7 +2,6 @@
 
 from collections.abc import Generator
 from typing import Any
-
 from starlette.exceptions import HTTPException
 
 

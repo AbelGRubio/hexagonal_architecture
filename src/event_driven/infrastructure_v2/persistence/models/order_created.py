@@ -1,7 +1,8 @@
 """Auto-generated Peewee model."""
 
-from event_driven.models.db_models import get_database
 from peewee import CharField, Model
+
+from event_driven.infrastructure.persistence.connection import get_database
 
 
 class Ordercreated(Model):

@@ -6,8 +6,8 @@ from typing import Any
 from pydantic import PrivateAttr, model_validator
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
 
-from event_driven.models.sources.source_s3_secrets import S3SecretSource
-from event_driven.models.sources.source_yaml_env import YamlEnvSource
+from event_driven.infrastructure.config.source.s3_secrets_source import S3SecretSource
+from event_driven.infrastructure.config.source.yaml_env_source import YamlEnvSource
 
 
 def track_origin(data: dict, origin: str, prefix: str = "", registry: dict | None = None) -> dict[str, str]:

@@ -1,4 +1,5 @@
-from .brokers import KafkaAdapter, RabbitMQAdapter, LocalQueueAdapter
+from .brokers import KafkaAdapter, RabbitMQAdapter, LocalQueueAdapter, IMessageBroker
+
 
 class MessageBrokerFactory:
     """Fábrica para instanciar el broker deseado según la configuración."""
