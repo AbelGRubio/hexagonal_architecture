@@ -8,15 +8,15 @@ from event_driven.infrastructure.persistence.connection import get_database
 class Ordercreated(Model):
     """Order creation."""
 
-    event_id = CharField(null=True, default=888888)
+    event_id = CharField(default="xxx555", null=True)
 
-    order_id = CharField(null=True, default=9999999)
+    items = CharField(default=[], null=True)
+
+    order_id = CharField(default="xxx999", null=True)
+
+    timestamp = CharField(default="timestamp.now", null=True)
 
     user_id = CharField(null=True)
-
-    items = CharField(null=True, default=[])
-
-    timestamp = CharField(null=True, default="timestamp.now")
 
     class Meta:
         """Class meta."""

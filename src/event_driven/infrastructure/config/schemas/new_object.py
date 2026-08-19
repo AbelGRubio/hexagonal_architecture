@@ -5,8 +5,8 @@ from typing import Literal
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 
-class CartItemModel(BaseModel):
-    """Settings for the CartItem section."""
+class NewObjectModel(BaseModel):
+    """Settings for the NewObject section."""
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -14,17 +14,17 @@ class CartItemModel(BaseModel):
         populate_by_name=True,
     )
 
-    type: Literal["CartItem"] = Field(default="CartItem", exclude=True)
-
-    product_id: str = Field(
-        default="xxxxxx",
-        alias="productId",
-        validation_alias=AliasChoices("PRODUCT_ID", "productId", "product_id"),
-        description="Product id",
-    )
+    type: Literal["NewObject"] = Field(default="NewObject", exclude=True)
 
     name: str | None = Field(
         default=None, alias="name", validation_alias=AliasChoices("NAME", "name"), description="Product name"
+    )
+
+    product_id: str = Field(
+        default="xxx777",
+        alias="productId",
+        validation_alias=AliasChoices("PRODUCT_ID", "productId", "product_id"),
+        description="Product id",
     )
 
     quantity: int = Field(

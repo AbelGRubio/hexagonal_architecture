@@ -217,7 +217,7 @@ models:
       - name: product_id
         description: Product id
         type: str
-        default: xxxxxx
+        default: xxxx7
         required: false
 
       - name: name

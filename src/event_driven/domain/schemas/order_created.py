@@ -19,28 +19,21 @@ class OrderCreatedModel(BaseModel):
     type: Literal["OrderCreated"] = Field(default="OrderCreated", exclude=True)
 
     event_id: str = Field(
-        default=888888,
+        default="888xxx",
         alias="eventId",
         validation_alias=AliasChoices("EVENT_ID", "eventId", "event_id"),
         description="Event id",
     )
 
+    items: list[CartItemModel] = Field(
+        default=None, alias="items", validation_alias=AliasChoices("ITEMS", "items"), description="list of items"
+    )
+
     order_id: str = Field(
-        default=9999999,
+        default="9999xxx",
         alias="orderId",
         validation_alias=AliasChoices("ORDER_ID", "orderId", "order_id"),
         description="Order id",
-    )
-
-    user_id: str | None = Field(
-        default=None,
-        alias="userId",
-        validation_alias=AliasChoices("USER_ID", "userId", "user_id"),
-        description="User id",
-    )
-
-    items: list[CartItemModel] = Field(
-        default=None, alias="items", validation_alias=AliasChoices("ITEMS", "items"), description="list of items"
     )
 
     timestamp: str = Field(
@@ -48,4 +41,11 @@ class OrderCreatedModel(BaseModel):
         alias="timestamp",
         validation_alias=AliasChoices("TIMESTAMP", "timestamp"),
         description="Order timestamp",
+    )
+
+    user_id: str | None = Field(
+        default=None,
+        alias="userId",
+        validation_alias=AliasChoices("USER_ID", "userId", "user_id"),
+        description="User id",
     )

@@ -1,12 +1,12 @@
 """AUTO-GENERATED SETTINGS MANAGER."""
-# YAML-SHA256: 641ec8e7a5de57e6f410d7bbe2cb8a4adf320ea9f2d1a67bc66c9a9c6754db4c
+# YAML-SHA256: 412c36bc2de62a2d89825aaaf104b470f05bf3ec8dfc4d60aae16869e369887f
 
 from functools import lru_cache
 from pathlib import Path
 
 import yaml
 
-from event_driven.infrastructure.config.schemas import GeneralSettings, ProcessSettings
+from event_driven.infrastructure.config.settings import GeneralSettings, ProcessSettings
 
 
 def _read_yaml(config_path: Path) -> dict:
@@ -26,7 +26,7 @@ def get_general_settings(path: Path | None = None) -> GeneralSettings:
     # Single file loading
     path = path if path else Path("None")
     values = _read_yaml(path)
-    return GeneralSettings.model_validate(values)
+    return GeneralSettings(**values)
 
 
 @lru_cache(maxsize=1)
@@ -38,7 +38,7 @@ def get_process_settings(path: Path | None = None) -> ProcessSettings:
     # Single file loading
     path = path if path else Path("None")
     values = _read_yaml(path)
-    return ProcessSettings.model_validate(values)
+    return ProcessSettings(**values)
 
 
 def init_settings(force_reload: bool = False) -> None:

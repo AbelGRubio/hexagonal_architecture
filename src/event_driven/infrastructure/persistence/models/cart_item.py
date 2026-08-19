@@ -8,13 +8,13 @@ from event_driven.infrastructure.persistence.connection import get_database
 class Cartitem(Model):
     """Cart item."""
 
-    product_id = CharField(null=True, default="xxxxxx")
-
     name = CharField(null=True)
 
-    quantity = IntegerField(null=True, default=0)
+    product_id = CharField(default="xxxxxx", null=True)
 
-    unit_price = FloatField(null=True, default=0)
+    quantity = IntegerField(default=0, null=True)
+
+    unit_price = FloatField(default=0, null=True)
 
     class Meta:
         """Class meta."""
