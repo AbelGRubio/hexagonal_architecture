@@ -19,7 +19,7 @@ class NotificationServiceThread(BaseWorkerThread[NotificationModel, BaseModel]):
             self,
             broker: IMessageBroker,
             consume_topic: str = "notifications-topic",
-            name: str = "NotificationService-Thread"
+            name: str = "NotificationService"
     ):
         super().__init__(
             payload_model=NotificationModel,

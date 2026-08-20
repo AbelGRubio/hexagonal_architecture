@@ -19,7 +19,7 @@ class OrderServiceThread(BaseWorkerThread[BaseModel, BaseModel]):
             broker: IMessageBroker,
             consume_topic: str = "orders-incoming",
             publish_topic: Optional[str] = "orders-created",
-            name: str = "OrderService-Thread"
+            name: str = "OrderService"
     ):
         super().__init__(
             payload_model=BaseModel,  # Reemplaza con tu modelo real, ej: OrderModel

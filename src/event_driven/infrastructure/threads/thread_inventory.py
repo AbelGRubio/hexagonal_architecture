@@ -20,7 +20,7 @@ class InventoryThread(BaseWorkerThread[CartItemModel, OrderCreatedModel]):
             broker: IMessageBroker,
             consume_topic: str = "cart-items",
             publish_topic: Optional[str] = "order-created",
-            name: str = "InventoryService-Thread"
+            name: str = "InventoryService"
     ):
         super().__init__(
             payload_model=CartItemModel,

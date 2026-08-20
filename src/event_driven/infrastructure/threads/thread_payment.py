@@ -22,7 +22,7 @@ class PaymentServiceThread(BaseWorkerThread[BaseModel, BaseModel]):
             broker: IMessageBroker,
             consume_topic: str = "inventory-reserved",
             publish_topic: Optional[str] = "payment-processed",
-            name: str = "PaymentService-Thread"
+            name: str = "PaymentService"
     ):
         super().__init__(
             payload_model=BaseModel,  # Reemplaza con tu modelo real
