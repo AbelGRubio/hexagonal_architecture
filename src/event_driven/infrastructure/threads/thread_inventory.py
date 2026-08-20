@@ -1,45 +1,50 @@
-import queue
+import logging
 from typing import Any, Optional
-
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from .thread_base import BaseWorkerThread
+from event_driven.domain.schemas.cart_item import CartItemModel
+from event_driven.domain.schemas.order_created import OrderCreatedModel
+from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
+
+logger = logging.getLogger(__name__)
 
 
-class InventoryThread(BaseWorkerThread[BaseModel, BaseModel]):
+class InventoryThread(BaseWorkerThread[CartItemModel, OrderCreatedModel]):
     """
-    Hilo consumidor para el servicio de inventario (Inventory Service).
-    Valida y descuenta el stock de los productos.
+    Consumer thread for the Inventory Service using the integrated broker in BaseWorkerThread.
     """
 
-    def __init__(self, input_queue: queue.Queue, output_queue: queue.Queue, schema_model: type[BaseModel]):
-        super().__init__(schema_model=schema_model, name="InventoryService-Thread")
-        self.input_queue = input_queue
-        self.output_queue = output_queue
+    def __init__(
+            self,
+            broker: IMessageBroker,
+            consume_topic: str = "cart-items",
+            publish_topic: Optional[str] = "order-created",
+            name: str = "InventoryService-Thread"
+    ):
+        super().__init__(
+            payload_model=CartItemModel,
+            broker=broker,
+            consume_destination=consume_topic,
+            publish_destination=publish_topic,
+            name=name
+        )
 
-    def read_raw_message(self) -> Optional[Any]:
-        try:
-            return self.input_queue.get(timeout=1.0)
-        except queue.Empty:
-            return None
+    def process_payload(self, payload: CartItemModel) -> Optional[OrderCreatedModel]:
+        logger.info(f"[{self.name}] Processing inventory for item ID: "
+                    f"{payload.id if hasattr(payload, 'id') else 'unknown'}")
 
-    def process_payload(self, payload: BaseModel) -> Optional[BaseModel]:
-        logger.info(f"[{self.name}] Verificando stock para los ítems...")
+        # --- TUS REGLAS DE NEGOCIO ---
+        # InventoryBusinessLogic.execute(payload)
 
-        # Lógica de negocio de inventario
-        # InventoryBusinessLogic.check_and_reserve(payload)
-
-        self.input_queue.task_done()
+        # Si quieres enviar un mensaje de salida, simplemente retórnalo.
+        # La clase base BaseWorkerThread se encargará de enviarlo automáticamente a publish_destination.
+        # return OrderCreatedModel(...)
         return None
 
-    def send_output_message(self, result: BaseModel) -> None:
-        if self.output_queue:
-            self.output_queue.put(result.model_dump_json())
-
     def handle_validation_error(self, raw_message: Any, error: ValidationError) -> None:
-        logger.error(f"[{self.name}] Error validando esquema de inventario: {error}")
-        self.input_queue.task_done()
+        logger.error(f"[{self.name}] Validation error: {error}")
+        # Opcional: podrías usar self.broker.publish("dlq-topic", str(raw_message)) si deseas enviar a una DLQ
 
-    def handle_processing_error(self, payload: BaseModel, error: Exception) -> None:
-        logger.error(f"[{self.name}] Error procesando stock (posible stock insuficiente): {error}")
-        self.input_queue.task_done()
+    def handle_processing_error(self, payload: CartItemModel, error: Exception) -> None:
+        logger.error(f"[{self.name}] Runtime processing error: {error}")

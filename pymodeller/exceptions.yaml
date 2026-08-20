@@ -61,3 +61,9 @@ exceptions:
     description: The operative is not valid.
     destination: domain
     is_http: false
+
+  - class_name: BrokerNotFound
+    status_code: 500
+    detail: Broker not found
+    description: Broker not found, please select a valid one.
+    is_http: false

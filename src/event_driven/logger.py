@@ -22,7 +22,6 @@ try:
     HAS_RICH = True
 except ImportError:
     HAS_RICH = False
-    # Definimos tipos dummy o None para que el código no falle si se usan de forma estática
     Console = Any
     RichHandler = Any
     Table = Any
@@ -274,7 +273,7 @@ def get_logger(name: str) -> LoggerApi:
     return logging.getLogger(name)
 
 
-def propague_loggers(no_propagate_prefixes=None):
+def propagate_loggers(no_propagate_prefixes=None):
     """
     Configura loggers:
     - Por defecto, propagan y nivel DEBUG.

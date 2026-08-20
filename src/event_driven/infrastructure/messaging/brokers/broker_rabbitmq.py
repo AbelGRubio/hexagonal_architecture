@@ -1,21 +1,29 @@
+from typing import Any, Optional
+
+import orjson
+import pika
+
+from .interface_message import IMessageBroker
+
+
 class RabbitMQAdapter(IMessageBroker):
     """Adaptador para RabbitMQ (usando pika)."""
 
     def __init__(self, host: str = "localhost"):
-        import pika
+
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=host))
         self.channel = self.connection.channel()
 
-    def send(self, destination: str, message: dict) -> None:
-        self.channel.queue_declare(queue=destination, durable=True)
+    def publish(self, topic_or_queue: str, message: dict) -> None:
+        self.channel.queue_declare(queue=topic_or_queue, durable=True)
         self.channel.basic_publish(
             exchange='',
-            routing_key=destination,
-            body=json.dumps(message)
+            routing_key=topic_or_queue,
+            body=orjson.dumps(message)
         )
 
-    def consume(self, source: str) -> Optional[Any]:
-        self.channel.queue_declare(queue=source, durable=True)
+    def consume(self, source: str, timeout: float = 1.0) -> Optional[Any]:
+        # self.channel.queue_declare(queue=source, durable=True)
         # Nota: RabbitMQ en un hilo suele requerir callbacks,
         # pero para adaptarlo al bucle 'get' puedes usar basic_get:
         method_frame, header_frame, body = self.channel.basic_get(queue=source, auto_ack=False)

@@ -17,31 +17,14 @@ class BaseCustomError(Exception):
         self.description = description
 
 
-class BrokerNotFoundError(BaseCustomError):
-    """Broker not found, please select a valid one."""
+class NotValidOperativeError(BaseCustomError):
+    """The operative is not valid."""
 
     def __init__(
         self,
-        message: str = "Broker not found",
+        message: str = "No valid operative loaded property",
         code: str | int = "",
-        description: str = "Broker not found, please select a valid one.",
-    ) -> None:
-        """Initialize exception."""
-        super().__init__(
-            message=message,
-            code=code,
-            description=description,
-        )
-
-
-class ConfigurationError(BaseCustomError):
-    """The configuration doesn't load correctly."""
-
-    def __init__(
-        self,
-        message: str = "No configuration loaded property",
-        code: str | int = "",
-        description: str = "The configuration doesn't load correctly.",
+        description: str = "The operative is not valid.",
     ) -> None:
         """Initialize exception."""
         super().__init__(

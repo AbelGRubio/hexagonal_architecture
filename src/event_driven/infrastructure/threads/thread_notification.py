@@ -1,44 +1,44 @@
-import queue
+import logging
 from typing import Any, Optional
-
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError, BaseModel
 
 from .thread_base import BaseWorkerThread
+from event_driven.domain.schemas.notification import NotificationModel  # Ejemplo de tu modelo
+from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
+
+logger = logging.getLogger(__name__)
 
 
-class NotificationServiceThread(BaseWorkerThread[BaseModel, BaseModel]):
+class NotificationServiceThread(BaseWorkerThread[NotificationModel, BaseModel]):
     """
-    Hilo consumidor para el servicio de notificaciones (Notification Service).
-    Envía correos o alertas finales al cliente.
+    Consumer thread for the Notification Service using the integrated message broker.
+    Sends emails or final alerts to the client.
     """
 
-    def __init__(self, input_queue: queue.Queue, schema_model: type[BaseModel]):
-        super().__init__(schema_model=schema_model, name="NotificationService-Thread")
-        self.input_queue = input_queue
+    def __init__(
+            self,
+            broker: IMessageBroker,
+            consume_topic: str = "notifications-topic",
+            name: str = "NotificationService-Thread"
+    ):
+        super().__init__(
+            payload_model=NotificationModel,
+            broker=broker,
+            consume_destination=consume_topic,
+            publish_destination=None,  # Al ser el último paso, no requiere publicar hacia adelante
+            name=name
+        )
 
-    def read_raw_message(self) -> Optional[Any]:
-        try:
-            return self.input_queue.get(timeout=1.0)
-        except queue.Empty:
-            return None
+    def process_payload(self, payload: NotificationModel) -> Optional[BaseModel]:
+        logger.info(f"[{self.name}] Sending notification to user...")
 
-    def process_payload(self, payload: BaseModel) -> Optional[BaseModel]:
-        logger.info(f"[{self.name}] Enviando notificación al usuario...")
-
-        # Lógica de negocio de notificaciones
+        # --- TUS REGLAS DE NEGOCIO ---
         # NotificationBusinessLogic.send_email(payload)
 
-        self.input_queue.task_done()
         return None
 
-    def send_output_message(self, result: BaseModel) -> None:
-        # Al ser el último paso, normalmente no retransmite nada
-        pass
-
     def handle_validation_error(self, raw_message: Any, error: ValidationError) -> None:
-        logger.error(f"[{self.name}] Error validando notificación: {error}")
-        self.input_queue.task_done()
+        logger.error(f"[{self.name}] Validation error in notification: {error}")
 
-    def handle_processing_error(self, payload: BaseModel, error: Exception) -> None:
-        logger.error(f"[{self.name}] Error enviando notificación: {error}")
-        self.input_queue.task_done()
+    def handle_processing_error(self, payload: NotificationModel, error: Exception) -> None:
+        logger.error(f"[{self.name}] Runtime error sending notification: {error}")

@@ -1,3 +1,10 @@
+import orjson
+import queue
+from typing import Any, Optional
+
+from .interface_message import IMessageBroker
+
+
 class LocalQueueAdapter(IMessageBroker):
     """Adaptador para usar colas en memoria de Python (threading-safe)."""
 
@@ -9,14 +16,14 @@ class LocalQueueAdapter(IMessageBroker):
             self.queues[name] = queue.Queue()
         return self.queues[name]
 
-    def send(self, destination: str, message: dict) -> None:
-        q = self._get_or_create_queue(destination)
-        q.put(json.dumps(message))
+    def publish(self, topic_or_queue: str, message: dict) -> None:
+        q = self._get_or_create_queue(topic_or_queue)
+        q.put(orjson.dumps(message).decode("utf-8"))
 
-    def consume(self, source: str) -> Optional[Any]:
+    def consume(self, source: str, timeout: float = 1.0) -> Optional[Any]:
         q = self._get_or_create_queue(source)
         try:
             # Timeout de 1 segundo para permitir que los hilos cierren limpiamente
-            return q.get(timeout=1.0)
+            return q.get(timeout=timeout)
         except queue.Empty:
             return None

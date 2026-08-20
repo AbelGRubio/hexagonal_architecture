@@ -10,7 +10,7 @@ class Cartitem(Model):
 
     name = CharField(null=True)
 
-    product_id = CharField(default="xxxxxx", null=True)
+    product_id = CharField(default="xxxx7", null=True)
 
     quantity = IntegerField(default=0, null=True)
 

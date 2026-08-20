@@ -28,6 +28,8 @@ dependencies = [
     "orjson>=3.11.9",
     "psutil>=7.0.0",
     "py-cpuinfo>=9.0.0",
+    "confluent-kafka>=2.3.0",
+    "pika>=1.4.4",
 ]
 
 

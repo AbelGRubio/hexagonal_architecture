@@ -5,6 +5,7 @@ import threading
 from typing import Any, Generic, Optional, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
+from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -25,19 +26,25 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
 
     def __init__(
             self,
-            schema_model: Type[PayloadT],
+            payload_model: Type[PayloadT],
+            broker: IMessageBroker,
+            consume_destination: str,
+            publish_destination: Optional[str] = None,
             name: Optional[str] = None,
             daemon: bool = True,
     ) -> None:
         """
         Initialize the base worker thread.
 
-        :param schema_model: The Pydantic model class used for data validation.
+        :param payload_model: The Pydantic model class used for data validation.
         :param name: Optional name for the thread.
         :param daemon: Whether the thread runs as a daemon.
         """
         super().__init__(name=name, daemon=daemon)
-        self.schema_model: Type[PayloadT] = schema_model
+        self.payload_model: Type[PayloadT] = payload_model
+        self.broker: IMessageBroker = broker
+        self.consume_destination: str = consume_destination
+        self.publish_destination: Optional[str] = publish_destination
         self._is_running: bool = True
 
     def stop(self) -> None:
@@ -47,17 +54,35 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
         self._is_running = False
 
     # ------------------------------------------------------------------
-    # ABSTRACT METHODS (Must be implemented by concrete classes)
+    # DEFAULT BROKER IMPLEMENTATIONS (Can be overridden if needed)
     # ------------------------------------------------------------------
 
-    @abc.abstractmethod
     def read_raw_message(self) -> Optional[Any]:
         """
-        Fetch a raw message from the source queue (e.g., Kafka, RabbitMQ, or queue.Queue).
-
-        Should return None if no message is available during the timeout period.
+        Default implementation to fetch a raw message using the injected broker.
         """
-        pass
+        try:
+            return self.broker.consume(self.consume_destination, timeout=1.0)
+        except Exception as e:
+            logger.error(f"Error reading message from broker in '{self.name}': {e}")
+            return None
+
+    def send_output_message(self, result: OutputT) -> None:
+        """
+        Default implementation to dispatch the processed result using the broker.
+        """
+        if self.publish_destination and self.broker:
+            try:
+                payload_str = result.model_dump_json()
+                self.broker.publish(self.publish_destination, payload_str)
+            except Exception as e:
+                logger.error(f"Error publishing message from '{self.name}': {e}")
+        else:
+            logger.warning(f"[{self.name}] Output generated but no publish_destination or broker configured.")
+
+    # ------------------------------------------------------------------
+    # ABSTRACT METHODS (Must be implemented by concrete classes)
+    # ------------------------------------------------------------------
 
     @abc.abstractmethod
     def process_payload(self, payload: PayloadT) -> Optional[OutputT]:
@@ -66,15 +91,6 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
 
         :param payload: Validated Pydantic model instance.
         :return: Processed output data to be dispatched, or None if no response is needed.
-        """
-        pass
-
-    @abc.abstractmethod
-    def send_output_message(self, result: OutputT) -> None:
-        """
-        Dispatch the processed result to the destination queue or topic.
-
-        :param result: The output returned by `process_payload`.
         """
         pass
 
@@ -153,7 +169,7 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
                 raise ValueError(f"Unsupported payload type: {type(raw_message)}")
 
             # Validate payload using Pydantic model
-            return self.schema_model.model_validate(data_dict)
+            return self.payload_model.model_validate(data_dict)
 
         except (json.JSONDecodeError, ValidationError, ValueError) as err:
             logger.warning(f"Schema validation failed for incoming message in '{self.name}' thread.")
@@ -163,7 +179,7 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
             else:
                 # Construct synthetic ValidationError for bad JSON / invalid structure
                 synthetic_error = ValidationError.from_exception_data(
-                    title=self.schema_model.__name__,
+                    title=self.payload_model.__name__,
                     line_errors=[],
                 )
                 self.handle_validation_error(raw_message, synthetic_error)

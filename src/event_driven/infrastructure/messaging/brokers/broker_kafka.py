@@ -1,8 +1,11 @@
-import json
+import orjson
 from typing import Any, Optional
 
-from confluent_kafka import Producer, Consumer, KafkaException
+from confluent_kafka import Producer, Consumer
+from .interface_message import IMessageBroker
+from event_driven.logger import get_logger
 
+logger = get_logger(__name__)
 
 class KafkaAdapter(IMessageBroker):
     """Adaptador para Apache Kafka (usando confluent-kafka)."""
@@ -33,18 +36,18 @@ class KafkaAdapter(IMessageBroker):
             self.consumers[topic] = consumer
         return self.consumers[topic]
 
-    def send(self, destination: str, message: dict) -> None:
+    def publish(self, topic_or_queue: str, message: dict) -> None:
         """Publica un mensaje (evento) en un tópico de Kafka."""
 
         def delivery_report(err, msg):
             if err is not None:
-                print(f"[Kafka] Error al enviar mensaje: {err}")
+                logger.error(f"[Kafka] Error al enviar mensaje: {err}")
             else:
-                print(f"[Kafka] Mensaje entregado a {msg.topic()} [{msg.partition()}]")
+                logger.info(f"[Kafka] Mensaje entregado a {msg.topic()} [{msg.partition()}]")
 
         self.producer.produce(
-            topic=destination,
-            value=json.dumps(message).encode('utf-8'),
+            topic=topic_or_queue,
+            value=orjson.dumps(message).decode("utf-8"),
             callback=delivery_report
         )
         # Forzar el envío inmediato

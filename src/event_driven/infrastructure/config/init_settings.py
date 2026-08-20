@@ -1,5 +1,5 @@
 """AUTO-GENERATED SETTINGS MANAGER."""
-# YAML-SHA256: 412c36bc2de62a2d89825aaaf104b470f05bf3ec8dfc4d60aae16869e369887f
+# YAML-SHA256: 9483aba1e7966d3649d6003b259f37342f342afdcf720fd2cf7f93d7c1527824
 
 from functools import lru_cache
 from pathlib import Path
