@@ -1,13 +1,11 @@
-import logging
 import signal
 import sys
 import time
 from typing import Type
 
 import typer
-from rich.console import Console
 
-from event_driven.infrastructure.config.enumerations import BrokersType, ThreadsType
+from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
 from event_driven.infrastructure.messaging.broker_factory import MessageBrokerFactory
 
 from event_driven.infrastructure.threads.thread_base import BaseWorkerThread
@@ -31,11 +29,11 @@ app = typer.Typer(
 # REGISTRIES & ENUMS (Easily extensible to add more workers/brokers)
 # ------------------------------------------------------------------
 
-WORKER_REGISTRY: dict[ThreadsType, Type[BaseWorkerThread]] = {
-    ThreadsType.INVENTORY: InventoryThread,
-    ThreadsType.NOTIFICATION: NotificationThread,
-    ThreadsType.ORDER: OrderThread,
-    ThreadsType.PAYMENT: PaymentThread,
+WORKER_REGISTRY: dict[ThreadsEnum, Type[BaseWorkerThread]] = {
+    ThreadsEnum.INVENTORY: InventoryThread,
+    ThreadsEnum.NOTIFICATION: NotificationThread,
+    ThreadsEnum.ORDER: OrderThread,
+    ThreadsEnum.PAYMENT: PaymentThread,
 }
 
 
@@ -45,12 +43,12 @@ WORKER_REGISTRY: dict[ThreadsType, Type[BaseWorkerThread]] = {
 
 @app.command("start")
 def start_worker(
-    worker: ThreadsType = typer.Argument(
+    worker: ThreadsEnum = typer.Argument(
         ...,
         help="The type of worker thread you want to launch."
     ),
-    broker: BrokersType = typer.Option(
-        BrokersType.LOCAL,
+    broker: BrokersEnum = typer.Option(
+        BrokersEnum.LOCAL,
         "--broker", "-b",
         help="Type of messaging broker to connect."
     ),
@@ -112,11 +110,11 @@ def start_worker(
 def list_available():
     """Display the list of available Workers and Brokers."""
     console.print("[bold]Available Workers:[/]")
-    for w in ThreadsType:
+    for w in ThreadsEnum:
         console.print(f" - {w.value}")
 
     console.print("\n[bold]Available Brokers:[/]")
-    for b in BrokersType:
+    for b in BrokersEnum:
         console.print(f" - {b.value}")
 
 

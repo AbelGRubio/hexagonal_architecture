@@ -3,7 +3,7 @@
 from enum import StrEnum
 
 
-class BrokersType(StrEnum):
+class BrokersEnum(StrEnum):
     """Brokers options."""
 
     KAFKA = "kafka"

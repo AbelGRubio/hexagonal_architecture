@@ -108,6 +108,8 @@ models:
       - name: broker_type
         description: Broker type 'Local', 'Kafka' or 'RabbitMQ'.
         type: str
+        from_enum: Brokers
+        default: kafka
 
   - name: Thread Config
     description: Thread configuration
@@ -132,6 +134,7 @@ models:
         description: threads configurations
         type: list
         from_model: Thread Config
+
 
   - name: NewObject
     type: model

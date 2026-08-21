@@ -1,6 +1,6 @@
 """AUTO-GENERATED MODELS PACKAGE."""
 
-from .brokers import BrokersType
-from .threads import ThreadsType
+from .brokers import BrokersEnum
+from .threads import ThreadsEnum
 
-__all__ = ["BrokersType", "ThreadsType"]
+__all__ = ["BrokersEnum", "ThreadsEnum"]

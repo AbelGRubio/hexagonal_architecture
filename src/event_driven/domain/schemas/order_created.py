@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
-from .cart_item import CartItemModel
+from event_driven.domain.schemas import CartItemModel
 
 
 class OrderCreatedModel(BaseModel):

@@ -3,7 +3,7 @@
 from enum import StrEnum
 
 
-class ThreadsType(StrEnum):
+class ThreadsEnum(StrEnum):
     """Types of threads."""
 
     INVENTORY = "inventory"
