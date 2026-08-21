@@ -2,9 +2,10 @@ import abc
 import json
 import logging
 import threading
-from typing import Any, Generic, Optional, Type, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ValidationError
+
 from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
 
 # Configure logger
@@ -16,8 +17,7 @@ OutputT = TypeVar("OutputT", bound=BaseModel)
 
 
 class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
-    """
-    Abstract base worker class executing in a dedicated thread.
+    """Abstract base worker class executing in a dedicated thread.
 
     Handles the lifecycle of consuming raw messages, parsing and validating
     them into a strongly-typed Pydantic model, invoking business logic,
@@ -25,42 +25,37 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
     """
 
     def __init__(
-            self,
-            payload_model: Type[PayloadT],
-            broker: IMessageBroker,
-            consume_destination: str,
-            publish_destination: Optional[str] = None,
-            name: Optional[str] = None,
-            daemon: bool = True,
+        self,
+        payload_model: type[PayloadT],
+        broker: IMessageBroker,
+        consume_destination: str,
+        publish_destination: str | None = None,
+        name: str | None = None,
+        daemon: bool = True,
     ) -> None:
-        """
-        Initialize the base worker thread.
+        """Initialize the base worker thread.
 
         :param payload_model: The Pydantic model class used for data validation.
         :param name: Optional name for the thread.
         :param daemon: Whether the thread runs as a daemon.
         """
         super().__init__(name=name, daemon=daemon)
-        self.payload_model: Type[PayloadT] = payload_model
+        self.payload_model: type[PayloadT] = payload_model
         self.broker: IMessageBroker = broker
         self.consume_destination: str = consume_destination
-        self.publish_destination: Optional[str] = publish_destination
+        self.publish_destination: str | None = publish_destination
         self._is_running: bool = True
 
     def stop(self) -> None:
-        """
-        Gracefully stop the thread loop.
-        """
+        """Gracefully stop the thread loop."""
         self._is_running = False
 
     # ------------------------------------------------------------------
     # DEFAULT BROKER IMPLEMENTATIONS (Can be overridden if needed)
     # ------------------------------------------------------------------
 
-    def read_raw_message(self) -> Optional[Any]:
-        """
-        Default implementation to fetch a raw message using the injected broker.
-        """
+    def read_raw_message(self) -> Any | None:
+        """Default implementation to fetch a raw message using the injected broker."""
         try:
             return self.broker.consume(self.consume_destination, timeout=1.0)
         except Exception as e:
@@ -68,12 +63,10 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
             return None
 
     def send_output_message(self, result: OutputT) -> None:
-        """
-        Default implementation to dispatch the processed result using the broker.
-        """
+        """Default implementation to dispatch the processed result using the broker."""
         if self.publish_destination and self.broker:
             try:
-                payload_str = result.model_dump_json()
+                payload_str = str(result.model_dump_json())
                 self.broker.publish(self.publish_destination, payload_str)
             except Exception as e:
                 logger.error(f"Error publishing message from '{self.name}': {e}")
@@ -85,9 +78,8 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
     # ------------------------------------------------------------------
 
     @abc.abstractmethod
-    def process_payload(self, payload: PayloadT) -> Optional[OutputT]:
-        """
-        Execute core business logic on the validated Pydantic model.
+    def process_payload(self, payload: PayloadT) -> OutputT | None:
+        """Execute core business logic on the validated Pydantic model.
 
         :param payload: Validated Pydantic model instance.
         :return: Processed output data to be dispatched, or None if no response is needed.
@@ -96,8 +88,7 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
 
     @abc.abstractmethod
     def handle_validation_error(self, raw_message: Any, error: ValidationError) -> None:
-        """
-        Handle messages that failed Pydantic schema validation (e.g., send to Dead Letter Queue).
+        """Handle messages that failed Pydantic schema validation (e.g., send to Dead Letter Queue).
 
         :param raw_message: The original unparsed payload.
         :param error: The caught Pydantic ValidationError.
@@ -106,8 +97,7 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
 
     @abc.abstractmethod
     def handle_processing_error(self, payload: PayloadT, error: Exception) -> None:
-        """
-        Handle unhandled exceptions occurring inside `process_payload`.
+        """Handle unhandled exceptions occurring inside `process_payload`.
 
         :param payload: The validated payload that caused the runtime error.
         :param error: The raised exception.
@@ -119,26 +109,24 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
     # ------------------------------------------------------------------
 
     def run(self) -> None:
-        """
-        Main execution loop running in the separate thread.
-        """
+        """Main execution loop running in the separate thread."""
         logger.info(f"Worker thread '{self.name}' started.")
 
         while self._is_running:
             try:
                 # 1. Fetch raw payload from source
-                raw_message: Optional[Any] = self.read_raw_message()
+                raw_message: Any | None = self.read_raw_message()
                 if raw_message is None:
                     continue
 
                 # 2. Parse and validate against Pydantic schema
-                parsed_payload: Optional[PayloadT] = self._parse_message(raw_message)
+                parsed_payload: PayloadT | None = self._parse_message(raw_message)
                 if parsed_payload is None:
                     continue  # Validation failed; already handled by handle_validation_error
 
                 # 3. Execute business logic
                 try:
-                    result: Optional[OutputT] = self.process_payload(parsed_payload)
+                    result: OutputT | None = self.process_payload(parsed_payload)
                 except Exception as proc_err:
                     logger.error(f"Processing error in thread '{self.name}': {proc_err}")
                     self.handle_processing_error(parsed_payload, proc_err)
@@ -153,9 +141,8 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
 
         logger.info(f"Worker thread '{self.name}' stopped.")
 
-    def _parse_message(self, raw_message: Any) -> Optional[PayloadT]:
-        """
-        Convert raw payload (JSON string, bytes, or dict) into the Pydantic model instance.
+    def _parse_message(self, raw_message: Any) -> PayloadT | None:
+        """Convert raw payload (JSON string, bytes, or dict) into the Pydantic model instance.
 
         :param raw_message: Raw message object.
         :return: Validated PayloadT instance, or None if parsing fails.

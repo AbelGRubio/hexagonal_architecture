@@ -1,12 +1,12 @@
 """AUTO-GENERATED SETTINGS MANAGER."""
-# YAML-SHA256: 9483aba1e7966d3649d6003b259f37342f342afdcf720fd2cf7f93d7c1527824
+# YAML-SHA256: 1dd3e0d8b892d834adc0965f88192289fd9c4b24545e6ea5e7189405e2e0d4a9
 
 from functools import lru_cache
 from pathlib import Path
 
 import yaml
 
-from event_driven.infrastructure.config.settings import GeneralSettings, ProcessSettings
+from event_driven.infrastructure.config.settings import GeneralSettings, ProcessSettings, ThreadsConfigurationSettings
 
 
 def _read_yaml(config_path: Path) -> dict:
@@ -41,6 +41,18 @@ def get_process_settings(path: Path | None = None) -> ProcessSettings:
     return ProcessSettings(**values)
 
 
+@lru_cache(maxsize=1)
+def get_threads_configuration_settings(path: Path | None = None) -> ThreadsConfigurationSettings:
+    """Return the cached application settings instance for ThreadsConfigurationSettings.
+
+    Source: None.
+    """
+    # Single file loading
+    path = path if path else Path("None")
+    values = _read_yaml(path)
+    return ThreadsConfigurationSettings(**values)
+
+
 def init_settings(force_reload: bool = False) -> None:
     """Initialize all settings.
 
@@ -49,7 +61,9 @@ def init_settings(force_reload: bool = False) -> None:
     if force_reload:
         get_general_settings.cache_clear()
         get_process_settings.cache_clear()
+        get_threads_configuration_settings.cache_clear()
 
     # Initialize / Warm up cache
     get_general_settings()
     get_process_settings()
+    get_threads_configuration_settings()

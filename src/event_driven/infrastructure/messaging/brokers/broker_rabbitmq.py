@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import orjson
 import pika
@@ -15,11 +15,11 @@ class RabbitMQAdapter(IMessageBroker):
         self.channel = self.connection.channel()
 
     def publish(
-            self,
-            topic_or_queue: str,
-            message: dict,
-            exchange: str = "",
-            routing_key: Optional[str] = None,
+        self,
+        topic_or_queue: str,
+        message: dict,
+        exchange: str = "",
+        routing_key: str | None = None,
     ) -> None:
         # Si no se pasa routing_key, se usa la cola por defecto
         rk = routing_key if routing_key is not None else topic_or_queue
@@ -30,19 +30,15 @@ class RabbitMQAdapter(IMessageBroker):
         else:
             self.channel.exchange_declare(exchange=exchange, exchange_type="direct", durable=True)
 
-        self.channel.basic_publish(
-            exchange=exchange,
-            routing_key=rk,
-            body=orjson.dumps(message)
-        )
+        self.channel.basic_publish(exchange=exchange, routing_key=rk, body=orjson.dumps(message))
 
     def consume(
-            self,
-            source: str,
-            timeout: float = 1.0,
-            exchange: Optional[str] = None,
-            routing_key: Optional[str] = None,
-    ) -> Optional[Any]:
+        self,
+        source: str,
+        timeout: float = 1.0,
+        exchange: str | None = None,
+        routing_key: str | None = None,
+    ) -> Any | None:
         # 1. Asegurar que la cola existe
         self.channel.queue_declare(queue=source, durable=True)
 
@@ -57,7 +53,7 @@ class RabbitMQAdapter(IMessageBroker):
 
         # 3. Consumir de la cola asociada
         method_frame, header_frame, body = self.channel.basic_get(queue=source, auto_ack=False)
-        if method_frame:
+        if method_frame and body:
             return {
                 "body": orjson.loads(body),
                 "delivery_tag": method_frame.delivery_tag,

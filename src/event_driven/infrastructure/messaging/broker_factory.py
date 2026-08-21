@@ -1,20 +1,22 @@
-from event_driven.infrastructure.config.enum.brokers import Broker
-from .brokers import KafkaAdapter, RabbitMQAdapter, LocalQueueAdapter, IMessageBroker
+from event_driven.infrastructure.config.enumerations.brokers import BrokersType
 from event_driven.infrastructure.exceptions.exceptions import BrokerNotFoundError
+
+from .brokers import IMessageBroker, KafkaAdapter, LocalQueueAdapter, RabbitMQAdapter
+
 
 class MessageBrokerFactory:
     """Fábrica para instanciar el broker deseado según la configuración."""
 
     @staticmethod
-    def create_broker(broker_type: Broker, **kwargs) -> IMessageBroker:
-        """Create a broker. """
+    def create_broker(broker_type: BrokersType, **kwargs) -> IMessageBroker:
+        """Create a broker."""
         brokers_ = {
-            Broker.KAFKA: KafkaAdapter,
-            Broker.LOCAL: LocalQueueAdapter,
-            Broker.RABBITMQ: RabbitMQAdapter,
+            BrokersType.KAFKA: KafkaAdapter,
+            BrokersType.LOCAL: LocalQueueAdapter,
+            BrokersType.RABBITMQ: RabbitMQAdapter,
         }
 
-        res_ = brokers_.get(broker_type, None)
+        res_ = brokers_.get(broker_type)
 
         if not res_:
             raise BrokerNotFoundError()

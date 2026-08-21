@@ -36,9 +36,9 @@ This project strictly separates the core business logic from external concerns (
 
 ### Key Layers:
 
-*   **`domain/` (The Core):** 
+*   **`domain/` (The Core):**
     Contains the enterprise's pure business logic, domain models, schemas (`cart_item.py`, `order_created.py`), and core domain exceptions. **All critical business rules reside here**, completely isolated from infrastructure details. It does not know about databases, HTTP protocols, or message brokers.
-*   **`infrastructure/` (The Adapters & Drivers):** 
+*   **`infrastructure/` (The Adapters & Drivers):**
     Houses all technology-specific implementations. This includes database connections and models (`persistence/`), message broker implementations for Kafka, RabbitMQ, and local execution (`messaging/`), background workers/threads (`threads/`), and dynamic configuration management (`config/`).
 
 ---
@@ -79,4 +79,3 @@ A significant portion of the data schemas and exception classes within this proj
 ### Prerequisites
 
 *   Python 3.14+
-

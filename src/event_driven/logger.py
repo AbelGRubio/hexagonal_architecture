@@ -19,6 +19,7 @@ try:
     from rich.logging import RichHandler
     from rich.table import Table
     from rich.theme import Theme
+
     HAS_RICH = True
 except ImportError:
     HAS_RICH = False
@@ -55,6 +56,7 @@ class UvicornFilter(logging.Filter):
 
 class DictNormalizerFilter(logging.Filter):
     """Convierte diccionarios de logs (como los de structlog/LangGraph) en strings bonitos."""
+
     def filter(self, record: logging.LogRecord) -> bool:
         # print("entra aqui")
         if isinstance(record.msg, dict):
@@ -114,7 +116,7 @@ class LoggerApi(logging.Logger):
             "logging.level.critical": "bold white on red",
         })
 
-        return Console(
+        return Console(  # pyre-ignore[bad-instantiation]
             theme=custom_theme,
             soft_wrap=True,
             stderr=False,
@@ -136,7 +138,7 @@ class LoggerApi(logging.Logger):
             console_handler = logging.StreamHandler(sys.stderr)
         else:
             # Rich console handler.
-            console_handler = RichHandler(
+            console_handler = RichHandler(  # pyre-ignore[bad-instantiation]
                 console=self.console,
                 omit_repeated_times=True,
                 rich_tracebacks=True,
@@ -177,7 +179,7 @@ class LoggerApi(logging.Logger):
         """Return the display title associated with a log level."""
         return self._titles_level.get(level, self.name.upper())
 
-    def detail(self, msg: str, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
+    def detail(self, msg: str, *args, **kwargs) -> None:  # ruff: ignore[missing-type-args, missing-type-kwargs]
         """Log a message at the custom DETAIL level."""
         if self.isEnabledFor(detail_level):
             super().log(detail_level, msg, *args, **kwargs)
@@ -247,7 +249,7 @@ class LoggerApi(logging.Logger):
             self.info("No timers recorded")
             return
 
-        table = Table(title="⏱️ Timers")
+        table = Table(title="⏱️ Timers")  # pyre-ignore[bad-instantiation]
 
         table.add_column("Name", justify="left")
         table.add_column("Time (s)", justify="right")
@@ -268,14 +270,13 @@ class LoggerApi(logging.Logger):
 logging.setLoggerClass(LoggerApi)
 
 
-def get_logger(name: str) -> LoggerApi:
+def get_logger(name: str) -> LoggerApi | logging.Logger:
     """Create and return a configured `LoggerApi` instance."""
     return logging.getLogger(name)
 
 
 def propagate_loggers(no_propagate_prefixes=None):
-    """
-    Configura loggers:
+    """Configura loggers:
     - Por defecto, propagan y nivel DEBUG.
     - Si el nombre empieza con un prefijo de la lista, se desactiva la propagación.
     """

@@ -1,6 +1,7 @@
-import orjson
 import queue
-from typing import Any, Optional
+from typing import Any
+
+import orjson
 
 from .interface_message import IMessageBroker
 
@@ -21,7 +22,7 @@ class LocalQueueAdapter(IMessageBroker):
         topic_or_queue: str,
         message: dict,
         exchange: str = "",
-        routing_key: Optional[str] = None,
+        routing_key: str | None = None,
     ) -> None:
         q = self._get_or_create_queue(topic_or_queue)
         q.put(orjson.dumps(message).decode("utf-8"))
@@ -30,9 +31,9 @@ class LocalQueueAdapter(IMessageBroker):
         self,
         source: str,
         timeout: float = 1.0,
-        exchange: Optional[str] = None,
-        routing_key: Optional[str] = None,
-    ) -> Optional[Any]:
+        exchange: str | None = None,
+        routing_key: str | None = None,
+    ) -> Any | None:
         q = self._get_or_create_queue(source)
         try:
             # Timeout de 1 segundo para permitir que los hilos cierren limpiamente

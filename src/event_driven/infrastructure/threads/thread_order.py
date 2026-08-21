@@ -1,35 +1,36 @@
-import logging
-from typing import Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, ValidationError
 
-from .thread_base import BaseWorkerThread
 from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
 from event_driven.logger import get_logger
+
+from .thread_base import BaseWorkerThread
+
 logger = get_logger(__name__)
 
 
-class OrderServiceThread(BaseWorkerThread[BaseModel, BaseModel]):
-    """
-    Consumer thread for the Order Service using the integrated message broker.
+class OrderThread(BaseWorkerThread[BaseModel, BaseModel]):
+    """Consumer thread for the Order Service using the integrated message broker.
     Listens for order creation events or initial requests.
     """
 
     def __init__(
-            self,
-            broker: IMessageBroker,
-            consume_topic: str = "orders-incoming",
-            publish_topic: Optional[str] = "orders-created",
-            name: str = "OrderService"
+        self,
+        broker: IMessageBroker,
+        consume_topic: str = "orders-incoming",
+        publish_topic: str | None = "orders-created",
+        name: str = "OrderThread",
     ):
         super().__init__(
             payload_model=BaseModel,  # Reemplaza con tu modelo real, ej: OrderModel
             broker=broker,
             consume_destination=consume_topic,
             publish_destination=publish_topic,
-            name=name
+            name=name,
         )
 
-    def process_payload(self, payload: BaseModel) -> Optional[BaseModel]:
+    def process_payload(self, payload: BaseModel) -> BaseModel | None:
         logger.info(f"[{self.name}] Processing order: {payload}")
 
         # 1. Llamar a la lógica de negocio pura

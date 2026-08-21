@@ -1,8 +1,10 @@
-from typing import Any, Optional
+from typing import Any
+
 import orjson
 from confluent_kafka import Consumer, Producer
 
 from event_driven.logger import get_logger
+
 from .interface_message import IMessageBroker
 
 logger = get_logger(__name__)
@@ -44,7 +46,7 @@ class KafkaAdapter(IMessageBroker):
         topic_or_queue: str,
         message: dict,
         exchange: str = "",
-        routing_key: Optional[str] = None,
+        routing_key: str | None = None,
     ) -> None:
         """Publica un mensaje en un tópico de Kafka.
 
@@ -56,9 +58,7 @@ class KafkaAdapter(IMessageBroker):
             if err is not None:
                 logger.error(f"[Kafka] Error al enviar mensaje: {err}")
             else:
-                logger.info(
-                    f"[Kafka] Mensaje entregado a {msg.topic()} [{msg.partition()}]"
-                )
+                logger.info(f"[Kafka] Mensaje entregado a {msg.topic()} [{msg.partition()}]")
 
         self.producer.produce(
             topic=topic_or_queue,
@@ -73,9 +73,9 @@ class KafkaAdapter(IMessageBroker):
         self,
         source: str,
         timeout: float = 1.0,
-        exchange: Optional[str] = None,
-        routing_key: Optional[str] = None,
-    ) -> Optional[Any]:
+        exchange: str | None = None,
+        routing_key: str | None = None,
+    ) -> Any | None:
         """Consume un mensaje de un tópico de Kafka.
 
         Los parámetros 'exchange' y 'routing_key' se ignoran.

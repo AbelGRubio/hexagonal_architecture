@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Optional
+from typing import Any
 
 
 class IMessageBroker(abc.ABC):
@@ -11,7 +11,7 @@ class IMessageBroker(abc.ABC):
         topic_or_queue: str,
         message: dict,
         exchange: str = "",
-        routing_key: Optional[str] = None,
+        routing_key: str | None = None,
     ) -> None:
         pass
 
@@ -20,7 +20,7 @@ class IMessageBroker(abc.ABC):
         self,
         source: str,
         timeout: float = 1.0,
-        exchange: Optional[str] = None,
-        routing_key: Optional[str] = None,
-    ) -> Optional[Any]:
+        exchange: str | None = None,
+        routing_key: str | None = None,
+    ) -> Any | None:
         pass

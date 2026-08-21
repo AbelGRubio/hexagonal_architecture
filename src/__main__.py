@@ -1,13 +1,9 @@
 import signal
 import sys
 
-from event_driven.domain.schemas.cart_item import CartItemModel
-from event_driven.domain.schemas.order_created import OrderCreatedModel
-from event_driven.infrastructure.config.enum.brokers import Broker
+from event_driven.infrastructure.config.enumerations import BrokersType
 from event_driven.infrastructure.messaging.broker_factory import MessageBrokerFactory
-from event_driven.infrastructure.threads.thread_inventory import InventoryThread
-from event_driven.infrastructure.threads.thread_manager import ThreadManager
-from event_driven.infrastructure.threads.thread_order import OrderServiceThread
+from event_driven.infrastructure.threads import InventoryThread, ThreadManager, OrderThread
 from event_driven.logger import get_logger
 
 logger = get_logger(__name__)
@@ -19,25 +15,15 @@ def main() -> None:
     # 1. Instantiate the Thread Manager
     # (max_retries=3 is default, meaning it will retry up to 3 times per thread)
     manager = ThreadManager(max_retries=3, check_interval=5.0)
-
+    message_broker = MessageBrokerFactory.create_broker(BrokersType.KAFKA)
     # 2. Register worker threads
     # Now we pass:
     #   - An initial instance of the thread
     #   - The class itself (InventoryThread / OrderServiceThread)
     #   - The keyword arguments needed to re-instantiate it if it fails
-    manager.add_thread(
-        InventoryThread(
-            schema_model=CartItemModel,
-            name="Inventory-Worker"
-        )
-    )
+    manager.add_thread(InventoryThread(broker=message_broker))
 
-    manager.add_thread(
-        OrderServiceThread(
-            schema_model=OrderCreatedModel,
-            name="Order-Worker"
-        )
-    )
+    manager.add_thread(OrderThread(broker=message_broker))
 
     # 3. Define graceful shutdown handler for signals (SIGINT / SIGTERM)
     def shutdown_handler(signum, frame) -> None:
@@ -63,9 +49,9 @@ def main() -> None:
     logger.info("Application ended")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger.info("Hola")
-    message_broker = MessageBrokerFactory.create_broker(Broker.KAFKA)
+    message_broker = MessageBrokerFactory.create_broker(BrokersType.KAFKA)
     logger.info("Broker created")
 
     # Run the main application

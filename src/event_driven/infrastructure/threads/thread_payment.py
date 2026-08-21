@@ -1,38 +1,36 @@
-import queue
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
-from .thread_base import BaseWorkerThread
 from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
 from event_driven.logger import get_logger
 
+from .thread_base import BaseWorkerThread
 
 logger = get_logger(__name__)
 
 
-class PaymentServiceThread(BaseWorkerThread[BaseModel, BaseModel]):
-    """
-    Consumer thread for the Payment Service using the integrated message broker.
+class PaymentThread(BaseWorkerThread[BaseModel, BaseModel]):
+    """Consumer thread for the Payment Service using the integrated message broker.
     Processes financial transactions for orders.
     """
 
     def __init__(
-            self,
-            broker: IMessageBroker,
-            consume_topic: str = "inventory-reserved",
-            publish_topic: Optional[str] = "payment-processed",
-            name: str = "PaymentService"
+        self,
+        broker: IMessageBroker,
+        consume_topic: str = "inventory-reserved",
+        publish_topic: str | None = "payment-processed",
+        name: str = "PaymentThread",
     ):
         super().__init__(
             payload_model=BaseModel,  # Reemplaza con tu modelo real
             broker=broker,
             consume_destination=consume_topic,
             publish_destination=publish_topic,
-            name=name
+            name=name,
         )
 
-    def process_payload(self, payload: BaseModel) -> Optional[BaseModel]:
+    def process_payload(self, payload: BaseModel) -> BaseModel | None:
         logger.info(f"[{self.name}] Processing payment...")
 
         # Lógica de negocio de pagos
