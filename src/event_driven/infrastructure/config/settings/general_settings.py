@@ -4,7 +4,6 @@ from pydantic import AliasChoices, Field
 from pydantic_settings import SettingsConfigDict
 
 from .base_settings import BaseTraceableSettings
-from .threads_configuration_settings import ThreadsConfigurationSettings
 
 
 class GeneralSettings(BaseTraceableSettings):
@@ -75,7 +74,3 @@ class GeneralSettings(BaseTraceableSettings):
         validation_alias=AliasChoices("WATERFALL", "waterfall"),
         description="Host",
     )
-
-    # --- Nested Sections (Composition) ---
-
-    threads_configuration: ThreadsConfigurationSettings = Field(default_factory=ThreadsConfigurationSettings)

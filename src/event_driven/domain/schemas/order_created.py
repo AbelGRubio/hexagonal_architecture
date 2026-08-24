@@ -8,7 +8,7 @@ from event_driven.domain.schemas import CartItemModel
 
 
 class OrderCreatedModel(BaseModel):
-    """Settings for the orderCreated section."""
+    """Settings for the order Created section."""
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -26,7 +26,7 @@ class OrderCreatedModel(BaseModel):
     )
 
     items: list[CartItemModel] = Field(
-        default=None, alias="items", validation_alias=AliasChoices("ITEMS", "items"), description="list of items"
+        default=[], alias="items", validation_alias=AliasChoices("ITEMS", "items"), description="list of items"
     )
 
     order_id: str = Field(

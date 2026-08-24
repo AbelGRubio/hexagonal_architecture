@@ -1,5 +1,5 @@
 import abc
-from typing import Any
+from typing import Any, Generator
 
 
 class IMessageBroker(abc.ABC):
@@ -10,17 +10,15 @@ class IMessageBroker(abc.ABC):
         self,
         topic_or_queue: str,
         message: dict,
-        exchange: str = "",
-        routing_key: str | None = None,
+        exchange_or_group: str = "",
     ) -> None:
         pass
 
     @abc.abstractmethod
     def consume(
         self,
-        source: str,
+        topic_or_queue: str,
+        exchange_or_group: str = '',
         timeout: float = 1.0,
-        exchange: str | None = None,
-        routing_key: str | None = None,
-    ) -> Any | None:
+    ) -> Generator[Any, None, None]:
         pass

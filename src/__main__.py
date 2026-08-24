@@ -1,10 +1,13 @@
 import signal
 import sys
 
-from event_driven.infrastructure.config.enumerations import BrokersType
+from pydantic import BaseModel
+
+from event_driven.infrastructure.config.enumerations import BrokersEnum
 from event_driven.infrastructure.messaging.broker_factory import MessageBrokerFactory
+from event_driven.infrastructure.messaging.brokers import IMessageBroker
 from event_driven.infrastructure.threads import InventoryThread, ThreadManager, OrderThread
-from event_driven.logger import get_logger
+from event_driven.logger import get_logger, propagate_loggers
 
 logger = get_logger(__name__)
 
@@ -15,15 +18,16 @@ def main() -> None:
     # 1. Instantiate the Thread Manager
     # (max_retries=3 is default, meaning it will retry up to 3 times per thread)
     manager = ThreadManager(max_retries=3, check_interval=5.0)
-    message_broker = MessageBrokerFactory.create_broker(BrokersType.KAFKA)
+    message_broker: IMessageBroker = MessageBrokerFactory.create_broker(BrokersEnum.RABBITMQ)
+
     # 2. Register worker threads
     # Now we pass:
     #   - An initial instance of the thread
     #   - The class itself (InventoryThread / OrderServiceThread)
     #   - The keyword arguments needed to re-instantiate it if it fails
-    manager.add_thread(InventoryThread(broker=message_broker))
+    # manager.add_thread(InventoryThread, broker=message_broker)
 
-    manager.add_thread(OrderThread(broker=message_broker))
+    manager.add_thread(OrderThread, broker=message_broker)
 
     # 3. Define graceful shutdown handler for signals (SIGINT / SIGTERM)
     def shutdown_handler(signum, frame) -> None:
@@ -49,10 +53,12 @@ def main() -> None:
     logger.info("Application ended")
 
 
+propagate_loggers()
+
 if __name__ == "__main__":
     logger.info("Hola")
-    message_broker = MessageBrokerFactory.create_broker(BrokersType.KAFKA)
+    message_broker = MessageBrokerFactory.create_broker(BrokersEnum.KAFKA)
     logger.info("Broker created")
 
     # Run the main application
-    # main()
+    main()

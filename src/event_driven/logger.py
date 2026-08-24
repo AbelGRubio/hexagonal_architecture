@@ -127,6 +127,7 @@ class LoggerApi(logging.Logger):
 
     def start_global_logger(self) -> None:
         """Configure console and file logging handlers."""
+        logger_level_ = logging.INFO
         root = logging.getLogger()
 
         if len(root.handlers) > 0:
@@ -148,7 +149,7 @@ class LoggerApi(logging.Logger):
                 markup=True,
             )
 
-        console_handler.setLevel(logging.DEBUG)
+        console_handler.setLevel(logger_level_)
         console_handler.addFilter(DictNormalizerFilter())
         console_handler.addFilter(UvicornFilter())
 
@@ -165,7 +166,7 @@ class LoggerApi(logging.Logger):
         # Rotating file handler.
         Path(".logs").mkdir(exist_ok=True)
         file_handler = TimedRotatingFileHandler(".logs/app.log", when="midnight", interval=1, backupCount=7)
-        file_handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(logger_level_)
         file_handler.setFormatter(
             logging.Formatter(
                 "%(asctime)s\t%(levelname)s\t%(name)s\t%(threadName)s\t%(message)s",
@@ -282,7 +283,7 @@ def propagate_loggers(no_propagate_prefixes=None):
     """
     # Valores por defecto si la lista es None
     if no_propagate_prefixes is None:
-        no_propagate_prefixes = ["boto3", "urllib3", "botocore", "s3transfer", "bcdocs"]
+        no_propagate_prefixes = ["boto3", "urllib3", "botocore", "s3transfer", "bcdocs", "pika.adapters"]
 
     # Obtenemos todos los loggers conocidos
     loggers = logging.Logger.manager.loggerDict.keys()

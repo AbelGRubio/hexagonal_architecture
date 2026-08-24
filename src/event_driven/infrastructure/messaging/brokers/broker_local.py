@@ -1,5 +1,5 @@
 import queue
-from typing import Any
+from typing import Any, Generator
 
 import orjson
 
@@ -21,22 +21,18 @@ class LocalQueueAdapter(IMessageBroker):
         self,
         topic_or_queue: str,
         message: dict,
-        exchange: str = "",
-        routing_key: str | None = None,
+        exchange_or_group: str = "",
     ) -> None:
         q = self._get_or_create_queue(topic_or_queue)
         q.put(orjson.dumps(message).decode("utf-8"))
 
     def consume(
         self,
-        source: str,
+        topic_or_queue: str,
+        exchange_or_group: str | None = None,
         timeout: float = 1.0,
-        exchange: str | None = None,
-        routing_key: str | None = None,
-    ) -> Any | None:
-        q = self._get_or_create_queue(source)
-        try:
-            # Timeout de 1 segundo para permitir que los hilos cierren limpiamente
-            return q.get(timeout=timeout)
-        except queue.Empty:
-            return None
+    ) -> Generator[Any, None, None]:
+        q = self._get_or_create_queue(topic_or_queue)
+        while True:
+            msg = q.get(block=True)
+            yield msg

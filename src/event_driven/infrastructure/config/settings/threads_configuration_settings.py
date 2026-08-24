@@ -24,8 +24,8 @@ class ThreadsConfigurationSettings(BaseTraceableSettings):
         populate_by_name=True,
     )
 
-    configuration: list[ThreadConfigModel] | None = Field(
-        default=None,
+    configuration: list[ThreadConfigModel] = Field(
+        default=[],
         alias="configuration",
         validation_alias=AliasChoices("CONFIGURATION", "configuration"),
         description="threads configurations",

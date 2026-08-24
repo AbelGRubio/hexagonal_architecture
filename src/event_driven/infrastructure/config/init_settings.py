@@ -1,12 +1,17 @@
 """AUTO-GENERATED SETTINGS MANAGER."""
-# YAML-SHA256: a82a8e2dc2717cd1157808238177395213f4b14d0012e949bfa27906ce58bdb2
+# YAML-SHA256: 4ecb462fff68cab657f27b8f19ad412e317365f222a163b66ab2d0c992cb4170
 
 from functools import lru_cache
 from pathlib import Path
 
 import yaml
 
-from event_driven.infrastructure.config.settings import GeneralSettings, ProcessSettings, ThreadsConfigurationSettings
+from event_driven.infrastructure.config.settings import (
+    AwsConfigurationSettings,
+    GeneralSettings,
+    ProcessSettings,
+    ThreadsConfigurationSettings,
+)
 
 
 def _read_yaml(config_path: Path) -> dict:
@@ -15,6 +20,18 @@ def _read_yaml(config_path: Path) -> dict:
         return {}
     with open(config_path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
+
+
+@lru_cache(maxsize=1)
+def get_aws_configuration_settings(path: Path | None = None) -> AwsConfigurationSettings:
+    """Return the cached application settings instance for AwsConfigurationSettings.
+
+    Source: None.
+    """
+    # Single file loading
+    path = path if path else Path("None")
+    values = _read_yaml(path)
+    return AwsConfigurationSettings(**values)
 
 
 @lru_cache(maxsize=1)
@@ -59,11 +76,13 @@ def init_settings(force_reload: bool = False) -> None:
     If force_reload is True, clears the lru_cache for each getter.
     """
     if force_reload:
+        get_aws_configuration_settings.cache_clear()
         get_general_settings.cache_clear()
         get_process_settings.cache_clear()
         get_threads_configuration_settings.cache_clear()
 
     # Initialize / Warm up cache
+    get_aws_configuration_settings()
     get_general_settings()
     get_process_settings()
     get_threads_configuration_settings()

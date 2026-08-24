@@ -1,7 +1,7 @@
 import logging
 import time
 
-from src.event_driven.infrastructure.threads.thread_base import BaseWorkerThread
+from event_driven.infrastructure.threads.thread_base import BaseWorkerThread
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -54,9 +54,10 @@ class ThreadManager:
         :param args: Positional arguments used to instantiate the thread.
         :param kwargs: Keyword arguments used to instantiate the thread.
         """
-        self._threads.append(thread)
-        self._register_thread_metadata(thread, *args, **kwargs)
-        logger.info(f"Thread '{thread.name}' added to ThreadManager pool.")
+        th = thread(**kwargs)
+        self._threads.append(th)
+        self._register_thread_metadata(th, *args, **kwargs)
+        logger.info(f"Thread '{th.name}' added to ThreadManager pool.")
 
     def start_all(self) -> None:
         """Start all registered worker threads concurrently."""
@@ -78,7 +79,7 @@ class ThreadManager:
             if thread.is_alive():
                 thread.join(timeout=timeout)
 
-    def stop_all(self, timeout_per_thread: float = 2.0) -> None:
+    def stop_all(self, timeout_per_thread: float = 4.0) -> None:
         """Signal all threads to stop gracefully, wait for them to finish,
         and handle timeouts.
 

@@ -129,11 +129,30 @@ models:
   - name: Threads Configuration
     description: Threads configuration
     type: settings
+    include_general: false
     variables:
       - name: configuration
         description: threads configurations
         type: list
         from_model: Thread Config
+        default: []
+
+  - name: AWS Configuration
+    description: AWS configuration
+    env_prefix: AWS_
+    type: settings
+    include_general: false
+    variables:
+      - name: S3_endpoint_url
+        description: s3 endpoint url
+        type: str
+      - name: access_key_id
+        description: Access key id
+        type: str
+        secret: true
+      - name: default_region
+        description: default region
+        type: str
 
 
   - name: NewObject
@@ -164,7 +183,7 @@ models:
         default: 0
         required: false
 
-  - name: orderCreated
+  - name: order Created
     description: Order creation
     type: model
     env_prefix: order_created

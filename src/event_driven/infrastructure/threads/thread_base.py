@@ -2,7 +2,7 @@ import abc
 import json
 import logging
 import threading
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Generator, TypeVar, Callable
 
 from pydantic import BaseModel, ValidationError
 
@@ -48,19 +48,17 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
 
     def stop(self) -> None:
         """Gracefully stop the thread loop."""
+        logger.info(f"Stop signal received '{self.name}'")
         self._is_running = False
 
     # ------------------------------------------------------------------
     # DEFAULT BROKER IMPLEMENTATIONS (Can be overridden if needed)
     # ------------------------------------------------------------------
 
-    def read_raw_message(self) -> Any | None:
+    def read_raw_message(self) -> Generator[Any, Callable]:
         """Default implementation to fetch a raw message using the injected broker."""
-        try:
-            return self.broker.consume(self.consume_destination, timeout=1.0)
-        except Exception as e:
-            logger.error(f"Error reading message from broker in '{self.name}': {e}")
-            return None
+        return self.broker.consume(self.consume_destination)
+
 
     def send_output_message(self, result: OutputT) -> None:
         """Default implementation to dispatch the processed result using the broker."""
@@ -112,32 +110,30 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
         """Main execution loop running in the separate thread."""
         logger.info(f"Worker thread '{self.name}' started.")
 
-        while self._is_running:
+        # El broker decide cómo bloquear y entregar cada mensaje
+        for raw_message, ack in self.read_raw_message():
+            if not self._is_running:
+                logger.info(f"Signal received from thread '{self.name}' stopped. State {self._is_running}")
+                break
+
+            if raw_message is None:
+                logger.info(f"Waiting for the item to process. { self._is_running}")
+                continue
+
+            parsed_payload = self._parse_message(raw_message)
+            if parsed_payload is None:
+                continue
+
             try:
-                # 1. Fetch raw payload from source
-                raw_message: Any | None = self.read_raw_message()
-                if raw_message is None:
-                    continue
+                result = self.process_payload(parsed_payload)
+                ack()
+            except Exception as proc_err:
+                logger.error(f"Processing error in thread '{self.name}': {proc_err}")
+                self.handle_processing_error(parsed_payload, proc_err)
+                continue
 
-                # 2. Parse and validate against Pydantic schema
-                parsed_payload: PayloadT | None = self._parse_message(raw_message)
-                if parsed_payload is None:
-                    continue  # Validation failed; already handled by handle_validation_error
-
-                # 3. Execute business logic
-                try:
-                    result: OutputT | None = self.process_payload(parsed_payload)
-                except Exception as proc_err:
-                    logger.error(f"Processing error in thread '{self.name}': {proc_err}")
-                    self.handle_processing_error(parsed_payload, proc_err)
-                    continue
-
-                # 4. Dispatch output if present
-                if result is not None:
-                    self.send_output_message(result)
-
-            except Exception as unhandled_err:
-                logger.critical(f"Unhandled error in thread '{self.name}': {unhandled_err}")
+            if result is not None:
+                self.send_output_message(result)
 
         logger.info(f"Worker thread '{self.name}' stopped.")
 
