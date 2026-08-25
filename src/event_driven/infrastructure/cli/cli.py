@@ -1,3 +1,9 @@
+"""CLI entry point for controlling event-driven worker processes.
+
+This module exposes commands to start worker threads against a chosen broker and
+list the supported worker/broker combinations available in the application.
+"""
+
 import signal
 import sys
 import time
@@ -45,77 +51,74 @@ WORKER_REGISTRY: dict[ThreadsEnum, Type[BaseWorkerThread]] = {
 def start_worker(
     worker: ThreadsEnum = typer.Argument(
         ...,
-        help="The type of worker thread you want to launch."
+        help="The type of worker thread you want to launch.",
     ),
     broker: BrokersEnum = typer.Option(
         BrokersEnum.LOCAL,
-        "--broker", "-b",
-        help="Type of messaging broker to connect."
+        "--broker",
+        "-b",
+        help="Type of messaging broker to connect.",
     ),
     consume_topic: str | None = typer.Option(
         None,
-        "--consume-topic", "-c",
-        help="Override default consume topic/queue."
+        "--consume-topic",
+        "-c",
+        help="Override default consume topic/queue.",
     ),
     publish_topic: str | None = typer.Option(
         None,
-        "--publish-topic", "-pub",
-        help="Override default publish topic/queue."
+        "--publish-topic",
+        "-pub",
+        help="Override default publish topic/queue.",
     ),
-):
-    """Starts a worker in a dedicated thread connected to the specified broker."""
+) -> None:
+    """Start a worker in a dedicated thread connected to the selected broker."""
     console.print(f"[bold green]Starting Worker:[/] {worker.value} using [bold cyan]{broker.value}[/]")
 
-    # 1. Instantiate the Broker
     try:
         broker_instance = MessageBrokerFactory.create_broker(broker)
-    except Exception as e:
-        console.print(f"[bold red]Error instantiating broker:[/] {e}")
+    except Exception as exc:
+        console.print(f"[bold red]Error instantiating broker:[/] {exc}")
         raise typer.Exit(code=1)
 
-    # 2. Retrieve the Worker class
     worker_cls = WORKER_REGISTRY[worker]
 
-    # 3. Build initialization arguments
-    kwargs = {"broker": broker_instance}
+    kwargs: dict[str, object] = {"broker": broker_instance}
     if consume_topic:
         kwargs["consume_topic"] = consume_topic
     if publish_topic:
         kwargs["publish_topic"] = publish_topic
 
-    # 4. Instantiate and start the Worker Thread
     worker_thread = worker_cls(**kwargs)
     worker_thread.start()
 
-    # 5. Handle Graceful Shutdown
-    def shutdown_handler(signum, frame):
+    def shutdown_handler(signum: int, frame: object) -> None:
+        """Stop the worker gracefully when the process receives a termination signal."""
         console.print("\n[bold yellow]Stopping worker gracefully...[/]")
         worker_thread.stop()
         worker_thread.join(timeout=5.0)
         console.print("[bold green]Worker stopped successfully. Exiting.[/]")
         sys.exit(0)
 
-    # Catch Ctrl+C (SIGINT) and SIGTERM
     signal.signal(signal.SIGINT, shutdown_handler)
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     console.print("[dim]Press Ctrl+C to stop the service.[/dim]")
 
-    # Keep the main process alive while the thread is running
     while worker_thread.is_alive():
         time.sleep(0.5)
 
 
 @app.command("list")
-def list_available():
-    """Display the list of available Workers and Brokers."""
+def list_available() -> None:
+    """Display the list of supported workers and brokers."""
     console.print("[bold]Available Workers:[/]")
-    for w in ThreadsEnum:
-        console.print(f" - {w.value}")
+    for worker in ThreadsEnum:
+        console.print(f" - {worker.value}")
 
     console.print("\n[bold]Available Brokers:[/]")
-    for b in BrokersEnum:
-        console.print(f" - {b.value}")
+    for broker in BrokersEnum:
+        console.print(f" - {broker.value}")
 
 
 if __name__ == "__main__":

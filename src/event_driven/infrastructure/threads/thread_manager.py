@@ -1,44 +1,43 @@
+"""Thread manager for supervising worker lifecycle and restart behavior.
+
+This module coordinates the startup, health checks, and graceful termination of
+multiple worker threads in a centralized manager.
+"""
+
 import logging
 import time
 
 from event_driven.infrastructure.threads.thread_base import BaseWorkerThread
 
-# Configure logger
 logger = logging.getLogger(__name__)
 
 
 class ThreadManager:
-    """Manager class responsible for orchestrating the lifecycle (startup,
-    monitoring, graceful shutdown, and retry/recovery policy) of multiple worker threads.
-    """
+    """Manage a pool of worker threads and their restart policy."""
 
     def __init__(
-        self, threads: list[BaseWorkerThread] | None = None, max_retries: int = 3, check_interval: float = 5.0
+        self,
+        threads: list[BaseWorkerThread] | None = None,
+        max_retries: int = 3,
+        check_interval: float = 5.0,
     ) -> None:
-        """Initialize the ThreadManager.
-
-        :param threads: Initial list of BaseWorkerThread instances to manage.
-        :param max_retries: Maximum number of allowed failures per thread before triggering a full shutdown.
-        :param check_interval: Time in seconds between health checks.
-        """
+        """Initialize the manager with an optional initial set of threads."""
         self._threads: list[BaseWorkerThread] = threads or []
 
-        # Track metadata for recreation and failure counting
         self._thread_classes: dict[str, type[BaseWorkerThread]] = {}
-        self._thread_init_args: dict[str, tuple] = {}
-        self._thread_init_kwargs: dict[str, dict] = {}
+        self._thread_init_args: dict[str, tuple[object, ...]] = {}
+        self._thread_init_kwargs: dict[str, dict[str, object]] = {}
         self._failure_counts: dict[str, int] = {}
 
         self.max_retries = max_retries
         self.check_interval = check_interval
         self._is_monitoring = False
 
-        # Register any threads passed during initialization
         for thread in self._threads:
             self._register_thread_metadata(thread)
 
-    def _register_thread_metadata(self, thread: BaseWorkerThread, *args, **kwargs) -> None:
-        """Helper to store thread blueprint data for future restarts."""
+    def _register_thread_metadata(self, thread: BaseWorkerThread, *args: object, **kwargs: object) -> None:
+        """Store metadata needed to recreate a worker if it stops unexpectedly."""
         name = thread.name
         thread_cls = type(thread)
         self._thread_classes[name] = thread_cls or type(thread)
@@ -47,20 +46,15 @@ class ThreadManager:
         if name not in self._failure_counts:
             self._failure_counts[name] = 0
 
-    def add_thread(self, thread: BaseWorkerThread, *args, **kwargs) -> None:
-        """Add a worker thread to the manager pool and cache its configuration.
-
-        :param thread: An instance of a class inheriting from BaseWorkerThread.
-        :param args: Positional arguments used to instantiate the thread.
-        :param kwargs: Keyword arguments used to instantiate the thread.
-        """
+    def add_thread(self, thread: type[BaseWorkerThread], *args: object, **kwargs: object) -> None:
+        """Create and register a worker instance in the managed pool."""
         th = thread(**kwargs)
         self._threads.append(th)
         self._register_thread_metadata(th, *args, **kwargs)
         logger.info(f"Thread '{th.name}' added to ThreadManager pool.")
 
     def start_all(self) -> None:
-        """Start all registered worker threads concurrently."""
+        """Start every managed thread that is not already running."""
         logger.info(f"Starting {len(self._threads)} worker threads...")
         for thread in self._threads:
             if not thread.is_alive():
@@ -70,30 +64,21 @@ class ThreadManager:
                 logger.warning(f"Thread '{thread.name}' is already running.")
 
     def join_all(self, timeout: float | None = None) -> None:
-        """Wait for all worker threads to finish their execution.
-
-        :param timeout: Optional timeout in seconds to wait for threads to join.
-        """
+        """Wait for all registered threads to finish, optionally respecting a timeout."""
         logger.info("Waiting for all worker threads to complete...")
         for thread in self._threads:
             if thread.is_alive():
                 thread.join(timeout=timeout)
 
     def stop_all(self, timeout_per_thread: float = 4.0) -> None:
-        """Signal all threads to stop gracefully, wait for them to finish,
-        and handle timeouts.
-
-        :param timeout_per_thread: Time in seconds to wait for each thread to shut down.
-        """
+        """Signal each worker to exit gracefully and then wait for shutdown completion."""
         self._is_monitoring = False
         logger.info("Initiating graceful shutdown for all worker threads...")
 
-        # 1. Trigger the stop flag on all threads
         for thread in self._threads:
             logger.info(f"Sending stop signal to thread '{thread.name}'...")
             thread.stop()
 
-        # 2. Wait for each thread to terminate gracefully
         for thread in self._threads:
             if thread.is_alive():
                 thread.join(timeout=timeout_per_thread)
@@ -105,19 +90,14 @@ class ThreadManager:
         logger.info("All worker threads have been shut down.")
 
     def monitor_health(self) -> dict[str, bool]:
-        """Check the active status of all managed threads.
-
-        :return: A dictionary mapping thread names to their alive status (True/False).
-        """
-        health_status = {}
+        """Return the alive status of every managed worker."""
+        health_status: dict[str, bool] = {}
         for thread in self._threads:
             health_status[thread.name] = thread.is_alive()
         return health_status
 
     def start_monitoring(self) -> None:
-        """Continuously monitor thread health. If a thread dies unexpectedly, attempt to restart it.
-        If it exceeds `max_retries` failures, aborts and shuts down the entire manager.
-        """
+        """Continuously monitor threads and restart any that exit unexpectedly."""
         self._is_monitoring = True
         logger.info(f"Health monitor started (max_retries={self.max_retries}).")
 
@@ -145,7 +125,6 @@ class ThreadManager:
                         self.stop_all()
                         return
 
-                    # Recreate and restart the thread
                     try:
                         cls = self._thread_classes[name]
                         args = self._thread_init_args[name]
@@ -155,11 +134,10 @@ class ThreadManager:
                         new_thread = cls(*args, **kwargs)
                         new_thread.start()
 
-                        # Replace old dead thread reference with the new instance
                         self._threads[i] = new_thread
                         logger.info(f"Thread '{name}' successfully restarted.")
 
-                    except Exception as e:
-                        logger.critical(f"Failed to restart thread '{name}': {e}")
+                    except Exception as exc:
+                        logger.critical(f"Failed to restart thread '{name}': {exc}")
                         self.stop_all()
                         return

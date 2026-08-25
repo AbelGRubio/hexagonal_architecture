@@ -56,9 +56,4 @@ def main() -> None:
 propagate_loggers()
 
 if __name__ == "__main__":
-    logger.info("Hola")
-    message_broker = MessageBrokerFactory.create_broker(BrokersEnum.KAFKA)
-    logger.info("Broker created")
-
-    # Run the main application
     main()

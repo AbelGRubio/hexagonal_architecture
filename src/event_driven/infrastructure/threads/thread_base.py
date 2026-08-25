@@ -1,27 +1,41 @@
+"""Base worker thread implementation for event-driven processing.
+
+This module defines the reusable worker lifecycle used to consume messages,
+validate payloads, execute business logic, and publish results or DLQ events.
+"""
+
 import abc
 import json
 import logging
 import threading
-from typing import Any, Generic, Generator, TypeVar, Callable
+import traceback
+from typing import Any, Callable, Generator, Generic, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
 from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
 
-# Configure logger
 logger = logging.getLogger(__name__)
 
-# Generic type variable bounded to Pydantic's BaseModel
 PayloadT = TypeVar("PayloadT", bound=BaseModel)
 OutputT = TypeVar("OutputT", bound=BaseModel)
 
 
-class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
-    """Abstract base worker class executing in a dedicated thread.
+class ErrorEnvelope(BaseModel):
+    """Standard payload used to publish messages into the dead-letter queue."""
 
-    Handles the lifecycle of consuming raw messages, parsing and validating
-    them into a strongly-typed Pydantic model, invoking business logic,
-    and dispatching processing results or validation errors.
+    failed_payload: Any
+    error_type: str
+    error_message: str
+    traceback: str | None = None
+
+
+class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
+    """Abstract base worker executed in its own dedicated thread.
+
+    The thread consumes raw messages from a broker, validates them against a
+    Pydantic model, invokes business logic, and publishes the output or pushes
+    any failure into a DLQ.
     """
 
     def __init__(
@@ -30,94 +44,76 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
         broker: IMessageBroker,
         consume_destination: str,
         publish_destination: str | None = None,
+        dlq_destination: str | None = None,
         name: str | None = None,
         daemon: bool = True,
     ) -> None:
-        """Initialize the base worker thread.
-
-        :param payload_model: The Pydantic model class used for data validation.
-        :param name: Optional name for the thread.
-        :param daemon: Whether the thread runs as a daemon.
-        """
+        """Initialize the worker thread and store the broker configuration."""
+        name_ = name or type(self).__name__
         super().__init__(name=name, daemon=daemon)
         self.payload_model: type[PayloadT] = payload_model
         self.broker: IMessageBroker = broker
         self.consume_destination: str = consume_destination
         self.publish_destination: str | None = publish_destination
+        self.dlq_destination: str | None = dlq_destination or publish_destination or f"{name_}-errors"
         self._is_running: bool = True
 
+    @abc.abstractmethod
+    def process_payload(self, payload: PayloadT) -> OutputT | None:
+        """Execute the worker's business logic for a validated message.
+
+        Args:
+            payload: Validated Pydantic model instance.
+
+        Returns:
+            An output model to be published, or `None` when no output is required.
+        """
+        return NotImplemented
+
+    def handle_validation_error(self, raw_message: Any, error: Exception) -> None:
+        """Handle schema or JSON validation failures by publishing them to the DLQ."""
+        logger.error(f"[{self.name}] Validation error: {error}")
+        self._publish_to_dlq(payload=raw_message, error=error, reason="Validation Error")
+
+    def handle_processing_error(self, payload: PayloadT, error: Exception) -> None:
+        """Handle uncaught processing exceptions and route them to the DLQ."""
+        logger.error(f"[{self.name}] Processing error with payload {payload}: {error}")
+
+        payload_data = payload.model_dump() if isinstance(payload, BaseModel) else payload
+
+        self._publish_to_dlq(payload=payload_data, error=error, reason="Processing Error")
+
     def stop(self) -> None:
-        """Gracefully stop the thread loop."""
+        """Signal the worker loop to exit gracefully."""
         logger.info(f"Stop signal received '{self.name}'")
         self._is_running = False
 
-    # ------------------------------------------------------------------
-    # DEFAULT BROKER IMPLEMENTATIONS (Can be overridden if needed)
-    # ------------------------------------------------------------------
-
-    def read_raw_message(self) -> Generator[Any, Callable]:
-        """Default implementation to fetch a raw message using the injected broker."""
+    def read_raw_message(self) -> Generator[Any, None, None]:
+        """Fetch the next raw message from the configured broker."""
         return self.broker.consume(self.consume_destination)
 
-
     def send_output_message(self, result: OutputT) -> None:
-        """Default implementation to dispatch the processed result using the broker."""
+        """Publish the successful processing output to the configured destination."""
         if self.publish_destination and self.broker:
             try:
                 payload_str = str(result.model_dump_json())
                 self.broker.publish(self.publish_destination, payload_str)
-            except Exception as e:
-                logger.error(f"Error publishing message from '{self.name}': {e}")
+            except Exception as exc:
+                logger.error(f"Error publishing message from '{self.name}': {exc}")
         else:
             logger.warning(f"[{self.name}] Output generated but no publish_destination or broker configured.")
 
-    # ------------------------------------------------------------------
-    # ABSTRACT METHODS (Must be implemented by concrete classes)
-    # ------------------------------------------------------------------
-
-    @abc.abstractmethod
-    def process_payload(self, payload: PayloadT) -> OutputT | None:
-        """Execute core business logic on the validated Pydantic model.
-
-        :param payload: Validated Pydantic model instance.
-        :return: Processed output data to be dispatched, or None if no response is needed.
-        """
-        pass
-
-    @abc.abstractmethod
-    def handle_validation_error(self, raw_message: Any, error: ValidationError) -> None:
-        """Handle messages that failed Pydantic schema validation (e.g., send to Dead Letter Queue).
-
-        :param raw_message: The original unparsed payload.
-        :param error: The caught Pydantic ValidationError.
-        """
-        pass
-
-    @abc.abstractmethod
-    def handle_processing_error(self, payload: PayloadT, error: Exception) -> None:
-        """Handle unhandled exceptions occurring inside `process_payload`.
-
-        :param payload: The validated payload that caused the runtime error.
-        :param error: The raised exception.
-        """
-        pass
-
-    # ------------------------------------------------------------------
-    # THREAD RUN LOOP & PARSING LOGIC
-    # ------------------------------------------------------------------
-
     def run(self) -> None:
-        """Main execution loop running in the separate thread."""
+        """Run the worker loop in the background thread."""
         logger.info(f"Worker thread '{self.name}' started.")
 
-        # El broker decide cómo bloquear y entregar cada mensaje
-        for raw_message, ack in self.read_raw_message():
+        for raw_message in self.read_raw_message():
             if not self._is_running:
                 logger.info(f"Signal received from thread '{self.name}' stopped. State {self._is_running}")
                 break
 
             if raw_message is None:
-                logger.info(f"Waiting for the item to process. { self._is_running}")
+                logger.info(f"Waiting for the item to process. {self._is_running}")
                 continue
 
             parsed_payload = self._parse_message(raw_message)
@@ -126,7 +122,6 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
 
             try:
                 result = self.process_payload(parsed_payload)
-                ack()
             except Exception as proc_err:
                 logger.error(f"Processing error in thread '{self.name}': {proc_err}")
                 self.handle_processing_error(parsed_payload, proc_err)
@@ -138,10 +133,13 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
         logger.info(f"Worker thread '{self.name}' stopped.")
 
     def _parse_message(self, raw_message: Any) -> PayloadT | None:
-        """Convert raw payload (JSON string, bytes, or dict) into the Pydantic model instance.
+        """Deserialize a raw message into the expected Pydantic model.
 
-        :param raw_message: Raw message object.
-        :return: Validated PayloadT instance, or None if parsing fails.
+        Args:
+            raw_message: Raw broker payload, such as JSON string, bytes, or dict.
+
+        Returns:
+            A validated Pydantic payload instance, or `None` if validation fails.
         """
         try:
             if isinstance(raw_message, (str, bytes)):
@@ -151,20 +149,33 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
             else:
                 raise ValueError(f"Unsupported payload type: {type(raw_message)}")
 
-            # Validate payload using Pydantic model
             return self.payload_model.model_validate(data_dict)
 
         except (json.JSONDecodeError, ValidationError, ValueError) as err:
             logger.warning(f"Schema validation failed for incoming message in '{self.name}' thread.")
 
-            if isinstance(err, ValidationError):
-                self.handle_validation_error(raw_message, err)
-            else:
-                # Construct synthetic ValidationError for bad JSON / invalid structure
-                synthetic_error = ValidationError.from_exception_data(
+            if not isinstance(err, ValidationError):
+                err = ValidationError.from_exception_data(
                     title=self.payload_model.__name__,
                     line_errors=[],
                 )
-                self.handle_validation_error(raw_message, synthetic_error)
-
+            self.handle_validation_error(raw_message, err)
             return None
+
+    def _publish_to_dlq(self, payload: Any, error: Exception, reason: str) -> None:
+        """Send a failed message and its metadata to the configured DLQ destination."""
+        if not self.dlq_destination:
+            logger.warning(f"[{self.name}] Failed to dispatch error: no dlq_destination configured.")
+            return
+
+        try:
+            error_event = ErrorEnvelope(
+                failed_payload=payload,
+                error_type=f"{reason}: {type(error).__name__}",
+                error_message=str(error),
+                traceback=traceback.format_exc(),
+            )
+            self.broker.publish(self.dlq_destination, error_event.model_dump_json())
+            logger.info(f"[{self.name}] Message successfully routed to DLQ '{self.dlq_destination}'.")
+        except Exception as dlq_err:
+            logger.critical(f"[{self.name}] Critical failure sending message to DLQ: {dlq_err}")

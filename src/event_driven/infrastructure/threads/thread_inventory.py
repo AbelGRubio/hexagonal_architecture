@@ -1,7 +1,6 @@
-import logging
-from typing import Any
+"""Inventory worker thread implementation."""
 
-from pydantic import ValidationError
+import logging
 
 from event_driven.domain.schemas.cart_item import CartItemModel
 from event_driven.domain.schemas.order_created import OrderCreatedModel
@@ -13,15 +12,16 @@ logger = logging.getLogger(__name__)
 
 
 class InventoryThread(BaseWorkerThread[CartItemModel, OrderCreatedModel]):
-    """Consumer thread for the Inventory Service using the integrated broker in BaseWorkerThread."""
+    """Worker that processes inventory-related cart item messages."""
 
     def __init__(
         self,
         broker: IMessageBroker,
         consume_topic: str = "cart-items",
-        publish_topic: str | None = "order-created",
+        publish_topic: str | None = "inventory-reserved",
         name: str = "InventoryThread",
-    ):
+    ) -> None:
+        """Initialize the inventory worker with its message destinations."""
         super().__init__(
             payload_model=CartItemModel,
             broker=broker,
@@ -31,21 +31,9 @@ class InventoryThread(BaseWorkerThread[CartItemModel, OrderCreatedModel]):
         )
 
     def process_payload(self, payload: CartItemModel) -> OrderCreatedModel | None:
+        """Process an inventory item and optionally emit an output event."""
         logger.info(
             f"[{self.name}] Processing inventory for item ID: {payload.id if hasattr(payload, 'id') else 'unknown'}"
         )
 
-        # --- TUS REGLAS DE NEGOCIO ---
-        # InventoryBusinessLogic.execute(payload)
-
-        # Si quieres enviar un mensaje de salida, simplemente retórnalo.
-        # La clase base BaseWorkerThread se encargará de enviarlo automáticamente a publish_destination.
-        # return OrderCreatedModel(...)
         return None
-
-    def handle_validation_error(self, raw_message: Any, error: ValidationError) -> None:
-        logger.error(f"[{self.name}] Validation error: {error}")
-        # Opcional: podrías usar self.broker.publish("dlq-topic", str(raw_message)) si deseas enviar a una DLQ
-
-    def handle_processing_error(self, payload: CartItemModel, error: Exception) -> None:
-        logger.error(f"[{self.name}] Runtime processing error: {error}")

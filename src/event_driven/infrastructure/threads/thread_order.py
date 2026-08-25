@@ -1,6 +1,6 @@
-from typing import Any
+"""Order worker thread implementation."""
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 
 from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
 from event_driven.logger import get_logger
@@ -11,19 +11,18 @@ logger = get_logger(__name__)
 
 
 class OrderThread(BaseWorkerThread[BaseModel, BaseModel]):
-    """Consumer thread for the Order Service using the integrated message broker.
-    Listens for order creation events or initial requests.
-    """
+    """Worker that processes order creation or order-related events."""
 
     def __init__(
         self,
         broker: IMessageBroker,
-        consume_topic: str = "orders-incoming",
+        consume_topic: str = "payment-processed",
         publish_topic: str | None = "orders-created",
         name: str = "OrderThread",
-    ):
+    ) -> None:
+        """Initialize the order worker with its input and output message topics."""
         super().__init__(
-            payload_model=BaseModel,  # Reemplaza con tu modelo real, ej: OrderModel
+            payload_model=BaseModel,
             broker=broker,
             consume_destination=consume_topic,
             publish_destination=publish_topic,
@@ -31,17 +30,6 @@ class OrderThread(BaseWorkerThread[BaseModel, BaseModel]):
         )
 
     def process_payload(self, payload: BaseModel) -> BaseModel | None:
+        """Process a validated order payload."""
         logger.info(f"[{self.name}] Processing order: {payload}")
-
-        # 1. Llamar a la lógica de negocio pura
-        # result = OrderBusinessLogic.process(payload)
-
-        # Si retornas un objeto Pydantic, la clase base lo publicará automáticamente en publish_destination
-        # return result
         return None
-
-    def handle_validation_error(self, raw_message: Any, error: ValidationError) -> None:
-        logger.error(f"[{self.name}] Validation error in order: {error}. Raw message: {raw_message}")
-
-    def handle_processing_error(self, payload: BaseModel, error: Exception) -> None:
-        logger.error(f"[{self.name}] Critical processing error in order: {error}")

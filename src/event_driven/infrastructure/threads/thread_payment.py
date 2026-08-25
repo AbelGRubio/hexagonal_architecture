@@ -1,6 +1,6 @@
-from typing import Any
+"""Payment worker thread implementation."""
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 
 from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
 from event_driven.logger import get_logger
@@ -11,9 +11,7 @@ logger = get_logger(__name__)
 
 
 class PaymentThread(BaseWorkerThread[BaseModel, BaseModel]):
-    """Consumer thread for the Payment Service using the integrated message broker.
-    Processes financial transactions for orders.
-    """
+    """Worker responsible for processing payment-related events."""
 
     def __init__(
         self,
@@ -21,9 +19,10 @@ class PaymentThread(BaseWorkerThread[BaseModel, BaseModel]):
         consume_topic: str = "inventory-reserved",
         publish_topic: str | None = "payment-processed",
         name: str = "PaymentThread",
-    ):
+    ) -> None:
+        """Initialize the payment worker and link it to its message destinations."""
         super().__init__(
-            payload_model=BaseModel,  # Reemplaza con tu modelo real
+            payload_model=BaseModel,
             broker=broker,
             consume_destination=consume_topic,
             publish_destination=publish_topic,
@@ -31,15 +30,6 @@ class PaymentThread(BaseWorkerThread[BaseModel, BaseModel]):
         )
 
     def process_payload(self, payload: BaseModel) -> BaseModel | None:
+        """Process a validated payment payload."""
         logger.info(f"[{self.name}] Processing payment...")
-
-        # Lógica de negocio de pagos
-        # PaymentBusinessLogic.charge(payload)
-
         return None
-
-    def handle_validation_error(self, raw_message: Any, error: ValidationError) -> None:
-        logger.error(f"[{self.name}] Validation error in payment data: {error}")
-
-    def handle_processing_error(self, payload: BaseModel, error: Exception) -> None:
-        logger.error(f"[{self.name}] Payment gateway failure: {error}")

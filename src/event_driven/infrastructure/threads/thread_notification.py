@@ -1,7 +1,8 @@
-import logging
-from typing import Any
+"""Notification worker thread implementation."""
 
-from pydantic import BaseModel, ValidationError
+import logging
+
+from pydantic import BaseModel
 
 from event_driven.domain.schemas import NotificationModel
 from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
@@ -12,31 +13,24 @@ logger = logging.getLogger(__name__)
 
 
 class NotificationThread(BaseWorkerThread[NotificationModel, BaseModel]):
-    """Consumer thread for the Notification Service using the integrated message broker.
-    Sends emails or final alerts to the client.
-    """
+    """Worker that sends user-facing notifications after processing is complete."""
 
     def __init__(
-        self, broker: IMessageBroker, consume_topic: str = "notifications-topic", name: str = "NotificationThread"
-    ):
+        self,
+        broker: IMessageBroker,
+        consume_topic: str = "orders-created",
+        name: str = "NotificationThread",
+    ) -> None:
+        """Initialize the notification worker and bind it to the incoming topic."""
         super().__init__(
             payload_model=NotificationModel,
             broker=broker,
             consume_destination=consume_topic,
-            publish_destination=None,  # Al ser el último paso, no requiere publicar hacia adelante
+            publish_destination=None,
             name=name,
         )
 
     def process_payload(self, payload: NotificationModel) -> BaseModel | None:
+        """Process a notification payload and emit the user alert."""
         logger.info(f"[{self.name}] Sending notification to user...")
-
-        # --- TUS REGLAS DE NEGOCIO ---
-        # NotificationBusinessLogic.send_email(payload)
-
         return None
-
-    def handle_validation_error(self, raw_message: Any, error: ValidationError) -> None:
-        logger.error(f"[{self.name}] Validation error in notification: {error}")
-
-    def handle_processing_error(self, payload: NotificationModel, error: Exception) -> None:
-        logger.error(f"[{self.name}] Runtime error sending notification: {error}")
