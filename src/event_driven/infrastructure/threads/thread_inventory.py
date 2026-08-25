@@ -2,16 +2,15 @@
 
 import logging
 
-from event_driven.domain.schemas.cart_item import CartItemModel
-from event_driven.domain.schemas.order_created import OrderCreatedModel
+from event_driven.domain.schemas import CartItemsModel, OrderCreatedModel
 from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
 
-from .thread_base import BaseWorkerThread
+from .thread_base_old import BaseWorkerThread
 
 logger = logging.getLogger(__name__)
 
 
-class InventoryThread(BaseWorkerThread[CartItemModel, OrderCreatedModel]):
+class InventoryThread(BaseWorkerThread[CartItemsModel, OrderCreatedModel]):
     """Worker that processes inventory-related cart item messages."""
 
     def __init__(
@@ -23,17 +22,17 @@ class InventoryThread(BaseWorkerThread[CartItemModel, OrderCreatedModel]):
     ) -> None:
         """Initialize the inventory worker with its message destinations."""
         super().__init__(
-            payload_model=CartItemModel,
+            payload_model=CartItemsModel,
             broker=broker,
             consume_destination=consume_topic,
             publish_destination=publish_topic,
             name=name,
         )
 
-    def process_payload(self, payload: CartItemModel) -> OrderCreatedModel | None:
+    def process_payload(self, payload: CartItemsModel) -> OrderCreatedModel | None:
         """Process an inventory item and optionally emit an output event."""
         logger.info(
-            f"[{self.name}] Processing inventory for item ID: {payload.id if hasattr(payload, 'id') else 'unknown'}"
+            f"Processing inventory for item ID: {payload.id if hasattr(payload, 'id') else 'unknown'}"
         )
 
         return None

@@ -94,7 +94,7 @@ models:
         required: false
         secret: false
 
-  - name: Queue Config
+  - name: Broker Config
     description: Broker Configuration.
     type: model
     include_general: false
@@ -110,6 +110,9 @@ models:
         type: str
         from_enum: Brokers
         default: kafka
+      - name: broker_kwargs
+        type: dict
+        description: Connection parameters for initializing the IMessageBroker adapter.
 
   - name: Thread Config
     description: Thread configuration
@@ -119,12 +122,15 @@ models:
       - name: name
         description: Thread name.
         type: str
-      - name: input
-        description: Input configuration.
-        from_model: Queue Config
-      - name: output
-        description: Output configuration.
-        from_model: Queue Config
+      - name: consumer
+        description: Configuration for consuming messages. Set to None for producer-only threads.
+        from_model: Broker Config
+      - name: producer
+        description: Configuration for publishing successful output messages.
+        from_model: Broker Config
+      - name: error
+        description: Configuration for Dead Letter Queue (DLQ) or error publishing.
+        from_model: Broker Config
 
   - name: Threads Configuration
     description: Threads configuration
@@ -153,35 +159,6 @@ models:
       - name: default_region
         description: default region
         type: str
-
-
-  - name: NewObject
-    type: model
-    description: prueba objeto
-    include_general: false
-    variables:
-      - name: product_id
-        description: Product id
-        type: str
-        default: xxx777
-        required: false
-
-      - name: name
-        description: Product name
-        type: str
-        required: false
-
-      - name: quantity
-        description: Quantity
-        type: int
-        default: 0
-        required: false
-
-      - name: unit_price
-        description: Item unit price
-        type: float
-        default: 0
-        required: false
 
   - name: order Created
     description: Order creation
@@ -250,6 +227,23 @@ models:
         type: float
         default: 0
         required: false
+
+  - name: CartItems
+    type: model
+    description: List of car items
+    destination: domain
+    include_general: false
+    variables:
+      - name: id
+        type: str
+        description: Cart identification
+        default: NoIdentified
+        required: false
+      - name: items
+        type: list
+        description: List of item
+        from_model: CartItem
+        default: []
 
   - name: orderCreated
     description: Order creation

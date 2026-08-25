@@ -14,7 +14,7 @@ import typer
 from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
 from event_driven.infrastructure.messaging.broker_factory import MessageBrokerFactory
 
-from event_driven.infrastructure.threads.thread_base import BaseWorkerThread
+from event_driven.infrastructure.threads.thread_base_old import BaseWorkerThread
 from event_driven.infrastructure.threads.thread_inventory import InventoryThread
 from event_driven.infrastructure.threads.thread_notification import NotificationThread
 from event_driven.infrastructure.threads.thread_order import OrderThread

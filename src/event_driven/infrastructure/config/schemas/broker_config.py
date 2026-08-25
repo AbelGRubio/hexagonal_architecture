@@ -7,8 +7,8 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from event_driven.infrastructure.config.enumerations import BrokersEnum
 
 
-class QueueConfigModel(BaseModel):
-    """Settings for the Queue Config section."""
+class BrokerConfigModel(BaseModel):
+    """Settings for the Broker Config section."""
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -16,7 +16,14 @@ class QueueConfigModel(BaseModel):
         populate_by_name=True,
     )
 
-    type: Literal["QueueConfig"] = Field(default="QueueConfig", exclude=True)
+    type: Literal["BrokerConfig"] = Field(default="BrokerConfig", exclude=True)
+
+    broker_kwargs: dict | None = Field(
+        default=None,
+        alias="brokerKwargs",
+        validation_alias=AliasChoices("BROKER_KWARGS", "brokerKwargs", "broker_kwargs"),
+        description="Connection parameters for initializing the IMessageBroker adapter.",
+    )
 
     broker_type: BrokersEnum = Field(
         default=BrokersEnum.KAFKA,

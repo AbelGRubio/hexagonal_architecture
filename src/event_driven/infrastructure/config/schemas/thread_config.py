@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
-from event_driven.infrastructure.config.schemas import QueueConfigModel
+from event_driven.infrastructure.config.schemas import BrokerConfigModel
 
 
 class ThreadConfigModel(BaseModel):
@@ -18,17 +18,27 @@ class ThreadConfigModel(BaseModel):
 
     type: Literal["ThreadConfig"] = Field(default="ThreadConfig", exclude=True)
 
-    input: QueueConfigModel | None = Field(
-        default=None, alias="input", validation_alias=AliasChoices("INPUT", "input"), description="Input configuration."
+    consumer: BrokerConfigModel | None = Field(
+        default=None,
+        alias="consumer",
+        validation_alias=AliasChoices("CONSUMER", "consumer"),
+        description="Configuration for consuming messages. Set to None for producer-only threads.",
+    )
+
+    error: BrokerConfigModel | None = Field(
+        default=None,
+        alias="error",
+        validation_alias=AliasChoices("ERROR", "error"),
+        description="Configuration for Dead Letter Queue (DLQ) or error publishing.",
     )
 
     name: str | None = Field(
         default=None, alias="name", validation_alias=AliasChoices("NAME", "name"), description="Thread name."
     )
 
-    output: QueueConfigModel | None = Field(
+    producer: BrokerConfigModel | None = Field(
         default=None,
-        alias="output",
-        validation_alias=AliasChoices("OUTPUT", "output"),
-        description="Output configuration.",
+        alias="producer",
+        validation_alias=AliasChoices("PRODUCER", "producer"),
+        description="Configuration for publishing successful output messages.",
     )

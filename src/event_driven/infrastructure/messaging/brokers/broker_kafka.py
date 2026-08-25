@@ -30,9 +30,7 @@ class KafkaAdapter(IMessageBroker):
     def __init__(self, **kwargs: Any) -> None:
         """Create the Kafka producer and initialize the pool of topic consumers."""
 
-        final_config = self.DEFAULT_PRODUCER_CONFIG.copy()
-        if kwargs:
-            final_config.update(kwargs)
+        final_config = self.DEFAULT_PRODUCER_CONFIG | kwargs
 
         self.bootstrap_servers: str = final_config["bootstrap.servers"]
 

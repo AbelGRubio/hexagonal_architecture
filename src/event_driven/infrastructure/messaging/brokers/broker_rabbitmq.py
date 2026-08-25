@@ -14,9 +14,17 @@ from .interface_message import IMessageBroker
 class RabbitMQAdapter(IMessageBroker):
     """RabbitMQ adapter implementation using pika."""
 
+    DEFAULT_PARAMS = {
+        "host": "localhost",
+        "port": 5672,
+        "heartbeat": 600,
+        "blocked_connection_timeout": 300,
+    }
+
     def __init__(self, **kwargs: Any) -> None:
         """Create a blocking RabbitMQ connection and open its channel."""
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(**kwargs))
+        connection_params = self.DEFAULT_PARAMS | kwargs
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(**connection_params))
         self.channel = self.connection.channel()
 
     def publish(

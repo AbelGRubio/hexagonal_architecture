@@ -7,7 +7,7 @@ multiple worker threads in a centralized manager.
 import logging
 import time
 
-from event_driven.infrastructure.threads.thread_base import BaseWorkerThread
+from event_driven.infrastructure.threads.thread_base_old import BaseWorkerThread
 
 logger = logging.getLogger(__name__)
 

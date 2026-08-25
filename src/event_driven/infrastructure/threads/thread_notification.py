@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from event_driven.domain.schemas import NotificationModel
 from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
 
-from .thread_base import BaseWorkerThread
+from .thread_base_old import BaseWorkerThread
 
 logger = logging.getLogger(__name__)
 

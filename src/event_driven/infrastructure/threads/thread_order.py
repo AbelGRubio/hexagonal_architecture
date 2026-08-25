@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
 from event_driven.logger import get_logger
 
-from .thread_base import BaseWorkerThread
+from .thread_base_old import BaseWorkerThread
 
 logger = get_logger(__name__)
 

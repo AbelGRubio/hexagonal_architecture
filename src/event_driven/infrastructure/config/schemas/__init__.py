@@ -1,7 +1,6 @@
 """AUTO-GENERATED MODELS PACKAGE."""
 
-from .new_object import NewObjectModel
-from .queue_config import QueueConfigModel
+from .broker_config import BrokerConfigModel
 from .thread_config import ThreadConfigModel
 
-__all__ = ["NewObjectModel", "QueueConfigModel", "ThreadConfigModel"]
+__all__ = ["BrokerConfigModel", "NewObjectModel", "ThreadConfigModel"]
