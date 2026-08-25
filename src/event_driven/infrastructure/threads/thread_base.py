@@ -10,20 +10,19 @@ import json
 import logging
 import threading
 import traceback
-from typing import Any, Callable, Generator, Generic, TypeVar
+from typing import Any, Generator, Generic, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
 from event_driven.infrastructure.config.schemas import BrokerConfigModel, ThreadConfigModel
-from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
+from event_driven.infrastructure.messaging.brokers import IMessageBroker
+from event_driven.infrastructure.messaging import MessageBrokerFactory
+
 
 logger = logging.getLogger(__name__)
 
 PayloadT = TypeVar("PayloadT", bound=BaseModel | None)
 OutputT = TypeVar("OutputT", bound=BaseModel | None)
-
-# Type alias for a broker factory function resolving BrokerConfigModel -> IMessageBroker
-BrokerFactory = Callable[[BrokerConfigModel], IMessageBroker]
 
 
 class ErrorEnvelope(BaseModel):
@@ -60,7 +59,7 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
         super().__init__(name=thread_name, daemon=daemon)
 
         self.config: ThreadConfigModel = config
-        self.broker_factory: BrokerFactory = BrokerFactory
+        self.broker_factory: MessageBrokerFactory = MessageBrokerFactory()
         self.payload_model: type[PayloadT] | None = payload_model
         self._is_running: bool = True
 
@@ -72,13 +71,19 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
     def _init_brokers(self) -> None:
         """Instantiate thread-local broker instances using the provided factory."""
         if self.config.consumer:
-            self.consumer_broker = self.broker_factory(self.config.consumer)
+            aux_ = self.config.consumer
+            kwargs_ = aux_.broker_kwargs or {}
+            self.consumer_broker = self.broker_factory.create_broker(aux_.broker_type, **kwargs_)
 
         if self.config.producer:
-            self.producer_broker = self.broker_factory(self.config.producer)
+            aux_ = self.config.producer
+            kwargs_ = aux_.broker_kwargs or {}
+            self.producer_broker = self.broker_factory.create_broker(aux_.broker_type, **kwargs_)
 
         if self.config.error:
-            self.error_broker = self.broker_factory(self.config.error)
+            aux_ = self.config.error
+            kwargs_ = aux_.broker_kwargs or {}
+            self.error_broker = self.broker_factory.create_broker(aux_.broker_type, **kwargs_)
 
     @abc.abstractmethod
     def process_payload(self, payload: PayloadT) -> OutputT | None:

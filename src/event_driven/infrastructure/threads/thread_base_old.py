@@ -9,7 +9,7 @@ import json
 import logging
 import threading
 import traceback
-from typing import Any, Callable, Generator, Generic, TypeVar
+from typing import Any, Generator, Generic, TypeVar
 
 from pydantic import BaseModel, ValidationError
 

@@ -7,8 +7,9 @@ import uuid
 from typing import Final, List
 
 from event_driven.domain.schemas import CartItemModel, CartItemsModel
-from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
-from .thread_base_old import BaseWorkerThread
+from event_driven.infrastructure.config.schemas import ThreadConfigModel
+
+from .thread_base import BaseWorkerThread
 
 logger = logging.getLogger(__name__)
 
@@ -27,27 +28,20 @@ class ProducerThread(BaseWorkerThread[CartItemsModel, CartItemsModel]):
 
     def __init__(
         self,
-        broker: IMessageBroker,
-        publish_topic: str = DEFAULT_QUEUE,
+        config: ThreadConfigModel,
         interval_seconds: float = 2.0,
         seed: int = 42,
-        name: str = "ProducerThread",
     ) -> None:
         """Initialize the cart items producer thread.
 
         Args:
-            broker: The message broker instance used for publishing messages.
-            publish_topic: The destination exchange/queue topic name.
+            config: Brokers configurations
             interval_seconds: Delay in seconds between generated messages.
             seed: Seed value for reproducible random sequence generation.
-            name: Human-readable name identifier for this thread.
         """
         super().__init__(
             payload_model=CartItemsModel,
-            broker=broker,
-            consume_destination='',
-            publish_destination=publish_topic,
-            name=name,
+            config=config
         )
         self.interval_seconds: float = interval_seconds
         self._rng: random.Random = random.Random(seed)
@@ -59,7 +53,8 @@ class ProducerThread(BaseWorkerThread[CartItemsModel, CartItemsModel]):
 
     def run(self) -> None:
         """Main execution loop that generates and publishes payload items continuously."""
-        queue_ = self.publish_destination or self.DEFAULT_QUEUE
+        self._init_brokers()
+        queue_ = self.config.producer.topic_or_queue or ''
         logger.info(f"Producer thread started. Target topic: '{queue_}'.")
         self._is_running = True
 
@@ -67,7 +62,7 @@ class ProducerThread(BaseWorkerThread[CartItemsModel, CartItemsModel]):
             try:
                 payload: CartItemsModel = self._generate_cart_items()
 
-                self.broker.publish(
+                self.producer_broker.publish(
                     topic_or_queue=queue_,
                     message=payload.model_dump(by_alias=True),
                 )

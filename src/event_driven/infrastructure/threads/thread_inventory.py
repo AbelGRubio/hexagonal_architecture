@@ -3,9 +3,10 @@
 import logging
 
 from event_driven.domain.schemas import CartItemsModel, OrderCreatedModel
-from event_driven.infrastructure.messaging.brokers.interface_message import IMessageBroker
+from event_driven.infrastructure.config.schemas import ThreadConfigModel, BrokerConfigModel
+from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
 
-from .thread_base_old import BaseWorkerThread
+from .thread_base import BaseWorkerThread
 
 logger = logging.getLogger(__name__)
 
@@ -15,18 +16,16 @@ class InventoryThread(BaseWorkerThread[CartItemsModel, OrderCreatedModel]):
 
     def __init__(
         self,
-        broker: IMessageBroker,
-        consume_topic: str = "cart-items",
-        publish_topic: str | None = "inventory-reserved",
-        name: str = "InventoryThread",
+        config: ThreadConfigModel,
     ) -> None:
-        """Initialize the inventory worker with its message destinations."""
+        """Initialize the inventory worker with configuration and broker factory.
+
+        Args:
+            config: Thread configuration model containing brokers and destinations.
+        """
         super().__init__(
+            config=config,
             payload_model=CartItemsModel,
-            broker=broker,
-            consume_destination=consume_topic,
-            publish_destination=publish_topic,
-            name=name,
         )
 
     def process_payload(self, payload: CartItemsModel) -> OrderCreatedModel | None:
