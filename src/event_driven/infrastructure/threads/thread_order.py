@@ -23,7 +23,7 @@ class OrderThread(BaseWorkerThread[OrderCreatedModel, BaseModel]):
         """Initialize the order worker with its input and output message topics."""
         super().__init__(
             config=config,
-            payload_model=BaseModel,
+            payload_model=OrderCreatedModel,
         )
 
         db_adapter = AdapterOrderCreated()
@@ -32,6 +32,6 @@ class OrderThread(BaseWorkerThread[OrderCreatedModel, BaseModel]):
 
     def process_payload(self, payload: OrderCreatedModel) -> Optional[BaseModel]:
         """Process a validated order payload."""
-        logger.info(f"[{self.name}] Processing order: {payload}")
+        logger.info(f"@@@@@@@@@@@@@@@@@ Processing order: {payload}")
         self.use_case.execute(payload)
         return None

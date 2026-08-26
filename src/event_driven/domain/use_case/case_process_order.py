@@ -21,6 +21,6 @@ class ProcessOrderUseCase:
         try:
             logger.info(f"Processing use case order: {payload.order_id}")
             # Save to DB via the Port (abstract interface)
-            self._adapter.save(payload)
+            # self._adapter.save(payload)
         except Exception as e:
             logger.error(e)

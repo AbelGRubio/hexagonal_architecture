@@ -39,6 +39,5 @@ class InventoryThread(BaseWorkerThread[CartItemsModel, OrderCreatedModel]):
         logger.info(
             f"Processing inventory for item ID: {payload.id if hasattr(payload, 'id') else 'unknown'}"
         )
-        self.use_case.execute(payload)
 
-        return None
+        return self.use_case.execute(payload)

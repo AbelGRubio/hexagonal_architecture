@@ -36,3 +36,13 @@ threads:
       exchange: inventory-exchange
     error:
       topicOrQueue: inventory-dlq
+
+  - name: order
+    consumer:
+      topicOrQueue: inventory-reserved
+      exchange: inventory-exchange
+    producer:
+      topicOrQueue: notification
+      exchange: notification-exchange
+    error:
+      topicOrQueue: notification-dlq

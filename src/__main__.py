@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
 from event_driven.infrastructure.messaging.broker_factory import MessageBrokerFactory
 from event_driven.infrastructure.messaging.brokers import IMessageBroker
-from event_driven.infrastructure.threads import InventoryThread, ThreadManager, ProducerThread
+from event_driven.infrastructure.threads import InventoryThread, ThreadManager, ProducerThread, OrderThread
 from event_driven.logger import get_logger, propagate_loggers
 from event_driven.infrastructure.config.resolved import ThreadsConfigurations
 
@@ -39,6 +39,7 @@ def main() -> None:
     #   - The keyword arguments needed to re-instantiate it if it fails
     manager.add_thread(ProducerThread, config=config.get_thread_config(thread_name=ThreadsEnum.PRODUCER))
     manager.add_thread(InventoryThread, config=config.get_thread_config(thread_name=ThreadsEnum.INVENTORY))
+    manager.add_thread(OrderThread, config=config.get_thread_config(thread_name=ThreadsEnum.ORDER))
 
     # manager.add_thread(OrderThread, broker=message_broker)
 
