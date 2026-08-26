@@ -18,8 +18,8 @@ class BrokerConfigModel(BaseModel):
 
     type: Literal["BrokerConfig"] = Field(default="BrokerConfig", exclude=True)
 
-    broker_kwargs: dict | None = Field(
-        default=None,
+    broker_kwargs: dict = Field(
+        default={},
         alias="brokerKwargs",
         validation_alias=AliasChoices("BROKER_KWARGS", "brokerKwargs", "broker_kwargs"),
         description="Connection parameters for initializing the IMessageBroker adapter.",
@@ -39,8 +39,8 @@ class BrokerConfigModel(BaseModel):
         description="exchange name",
     )
 
-    topic_or_queue: str | None = Field(
-        default=None,
+    topic_or_queue: str = Field(
+        ...,
         alias="topicOrQueue",
         validation_alias=AliasChoices("TOPIC_OR_QUEUE", "topicOrQueue", "topic_or_queue"),
         description="topic or queue name",

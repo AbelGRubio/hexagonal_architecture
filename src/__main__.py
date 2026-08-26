@@ -27,8 +27,8 @@ def main() -> None:
     #   - An initial instance of the thread
     #   - The class itself (InventoryThread / OrderServiceThread)
     #   - The keyword arguments needed to re-instantiate it if it fails
-    manager.add_thread(ProducerThread, broker=message_broker)
-    manager.add_thread(InventoryThread, broker=message_broker_2)
+    # manager.add_thread(ProducerThread, config=config)
+    # manager.add_thread(InventoryThread, broker=message_broker_2)
 
     # manager.add_thread(OrderThread, broker=message_broker)
 

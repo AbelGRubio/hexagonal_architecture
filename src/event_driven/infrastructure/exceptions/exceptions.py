@@ -49,3 +49,20 @@ class ConfigurationError(BaseCustomError):
             code=code,
             description=description,
         )
+
+
+class MissingConfigurationError(BaseCustomError):
+    """Unable to get the configuration."""
+
+    def __init__(
+        self,
+        message: str = "Missing configuration",
+        code: str | int = "",
+        description: str = "Unable to get the configuration.",
+    ) -> None:
+        """Initialize exception."""
+        super().__init__(
+            message=message,
+            code=code,
+            description=description,
+        )

@@ -1,6 +1,6 @@
 """AUTO-GENERATED MODELS PACKAGE."""
 
-from .exceptions import BaseCustomError, BrokerNotFoundError, ConfigurationError
+from .exceptions import BaseCustomError, BrokerNotFoundError, ConfigurationError, MissingConfigurationError
 from .exceptions_http import (
     BadRequestException,
     ConflictException,
@@ -25,6 +25,7 @@ __all__ = [
     "ExternalServiceException",
     "ForbiddenException",
     "InternalDatabaseException",
+    "MissingConfigurationError",
     "ServiceUnavailableException",
     "UnauthorizedException",
     "ValidationException",

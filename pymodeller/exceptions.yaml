@@ -67,3 +67,9 @@ exceptions:
     detail: Broker not found
     description: Broker not found, please select a valid one.
     is_http: false
+
+  - class_name: MissingConfiguration
+    status_code: 500
+    detail: Missing configuration
+    description: Unable to get the configuration.
+    is_http: false
