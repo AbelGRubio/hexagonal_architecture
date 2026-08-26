@@ -1,5 +1,5 @@
 """AUTO-GENERATED MODELS PACKAGE."""
 
-from .thread_config_resolved import ResolvedThreadConfigModel
+from .thread_config_resolved import ResolvedThreadConfigModel, ThreadsConfigurations
 
-__all__ = ["ResolvedThreadConfigModel"]
+__all__ = ["ResolvedThreadConfigModel", "ThreadsConfigurations"]

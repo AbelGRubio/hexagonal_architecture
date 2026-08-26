@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
+from event_driven.infrastructure.config.enumerations import ThreadsEnum
 from event_driven.infrastructure.config.schemas import BrokerConfigModel
 
 
@@ -32,8 +33,11 @@ class ThreadConfigModel(BaseModel):
         description="Configuration for Dead Letter Queue (DLQ) or error publishing.",
     )
 
-    name: str | None = Field(
-        default=None, alias="name", validation_alias=AliasChoices("NAME", "name"), description="Thread name."
+    name: ThreadsEnum = Field(
+        default=ThreadsEnum.WITHOUT_ASSIGNATION,
+        alias="name",
+        validation_alias=AliasChoices("NAME", "name"),
+        description="Thread name.",
     )
 
     producer: BrokerConfigModel | None = Field(

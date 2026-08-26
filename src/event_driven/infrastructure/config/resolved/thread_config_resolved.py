@@ -1,9 +1,10 @@
 """Resolved for thread config model."""
-from typing import Any
+from enum import Enum
+from typing import Any, Optional
 
 from pydantic import Field, model_validator, BaseModel
 
-from event_driven.infrastructure.config.enumerations import BrokersEnum
+from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
 from event_driven.infrastructure.config.schemas import ThreadConfigModel, BrokerConfigModel
 from event_driven.infrastructure.config.utils import _extract_defaults_by_type, _apply_broker_defaults_to_section, \
     _get_broker_section_names
@@ -77,6 +78,18 @@ class ThreadsConfigurations(BaseModel):
                         _apply_broker_defaults_to_section(broker_dict, global_default, defaults_by_type)
 
         return data
+
+    def get_thread_config(
+            self, thread_name: ThreadsEnum,
+    ) -> Optional[ResolvedThreadConfigModel]:
+        """Finds and returns a thread configuration by name or Enum. Returns None if not found."""
+        target_name = thread_name.value if isinstance(thread_name, Enum) else thread_name
+
+        for thread in self.threads:
+            if thread.name == target_name:
+                return thread
+
+        return None
 
 if __name__ == '__main__':
     import yaml

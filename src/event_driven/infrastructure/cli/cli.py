@@ -14,11 +14,7 @@ import typer
 from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
 from event_driven.infrastructure.messaging.broker_factory import MessageBrokerFactory
 
-from event_driven.infrastructure.threads.thread_base_old import BaseWorkerThread
-from event_driven.infrastructure.threads.thread_inventory import InventoryThread
-from event_driven.infrastructure.threads.thread_notification import NotificationThread
-from event_driven.infrastructure.threads.thread_order import OrderThread
-from event_driven.infrastructure.threads.thread_payment import PaymentThread
+from event_driven.infrastructure.threads import THREAD_REGISTRY
 from event_driven.logger import get_logger
 
 
@@ -30,17 +26,6 @@ app = typer.Typer(
     help="CLI for managing and running worker consumer threads.",
     add_completion=False,
 )
-
-# ------------------------------------------------------------------
-# REGISTRIES & ENUMS (Easily extensible to add more workers/brokers)
-# ------------------------------------------------------------------
-
-WORKER_REGISTRY: dict[ThreadsEnum, Type[BaseWorkerThread]] = {
-    ThreadsEnum.INVENTORY: InventoryThread,
-    ThreadsEnum.NOTIFICATION: NotificationThread,
-    ThreadsEnum.ORDER: OrderThread,
-    ThreadsEnum.PAYMENT: PaymentThread,
-}
 
 
 # ------------------------------------------------------------------
@@ -81,7 +66,7 @@ def start_worker(
         console.print(f"[bold red]Error instantiating broker:[/] {exc}")
         raise typer.Exit(code=1)
 
-    worker_cls = WORKER_REGISTRY[worker]
+    worker_cls = THREAD_REGISTRY[worker]
 
     kwargs: dict[str, object] = {"broker": broker_instance}
     if consume_topic:

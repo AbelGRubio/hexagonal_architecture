@@ -1,4 +1,5 @@
 """Order worker thread implementation."""
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -23,7 +24,7 @@ class OrderThread(BaseWorkerThread[BaseModel, BaseModel]):
             payload_model=BaseModel,
         )
 
-    def process_payload(self, payload: BaseModel) -> BaseModel | None:
+    def process_payload(self, payload: BaseModel) -> Optional[BaseModel]:
         """Process a validated order payload."""
         logger.info(f"[{self.name}] Processing order: {payload}")
         return None

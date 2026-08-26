@@ -1,6 +1,7 @@
 """Notification worker thread implementation."""
 
 import logging
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -25,7 +26,7 @@ class NotificationThread(BaseWorkerThread[NotificationModel, BaseModel]):
             payload_model=NotificationModel
         )
 
-    def process_payload(self, payload: NotificationModel) -> BaseModel | None:
+    def process_payload(self, payload: NotificationModel) -> Optional[BaseModel]:
         """Process a notification payload and emit the user alert."""
         logger.info(f"[{self.name}] Sending notification to user...")
         return None

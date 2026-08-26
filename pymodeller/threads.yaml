@@ -6,39 +6,33 @@
 default: rabbitmq
 
 broker_config:
-  - broker_type: "rabbitmq"
+  - broker_type: rabbitmq
     broker_kwargs:
-      host: "localhost"
+      host: localhost
       port: 5672
 
-  - broker_type: "kafka"
+  - broker_type: kafka
     broker_kwargs:
       bootstrap_servers: ["kafka-broker:9092"]
-      group_id: "default-group"
+      group_id: default-group
 
 # 2. Lista de configuraciones de hilos
 threads:
   # Thread 1: Productor sintético de ítems de carrito
-  - name: "ProducerThread"
+  - name: producer
     producer:
-      topicOrQueue: "cart-items"
-      exchange: "cart-exchange"
+      topicOrQueue: cart-items
+      exchange: cart-exchange
     error:
-      topicOrQueue: "cart-items-dlq"
+      topicOrQueue: cart-items-dlq
 
   # Thread 2: Consumidor de inventario que procesa carritos
-  - name: "InventoryThread"
+  - name: inventory
     consumer:
-      topicOrQueue: "cart-items"
-      exchange: "cart-exchange"
+      topicOrQueue: cart-items
+      exchange: cart-exchange
     producer:
-      topicOrQueue: "inventory-reserved"
-      exchange: "inventory-exchange"
+      topicOrQueue: inventory-reserved
+      exchange: inventory-exchange
     error:
-      topicOrQueue: "inventory-dlq"
-
-  # Thread 3: Ejemplo de hilo que sobrescribe el broker a Kafka solo para su consumidor
-  - name: "AnalyticsConsumerThread"
-    consumer:
-      brokerType: "kafka"
-      topicOrQueue: "raw-events-topic"
+      topicOrQueue: inventory-dlq

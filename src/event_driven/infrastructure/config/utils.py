@@ -4,16 +4,19 @@ from typing import Any, get_args
 from event_driven.infrastructure.config.schemas import ThreadConfigModel, BrokerConfigModel
 
 
+BROKER_KWARGS = "broker_kwargs"
+BROKER_TYPE = "broker_type"
+TOPIC_OR_QUEUE = "topic_or_queue"
+
 # ==============================================================================
 # Helper Functions (Modularized Business Logic)
 # ==============================================================================
 
 def _get_field_aliases() -> tuple[str, str, str]:
     """Retrieves field aliases for broker kwargs, type, and topic."""
-    kwargs_attr, type_attr, topic_attr = "broker_kwargs", "broker_type", "topic_or_queue"
-    kwargs_alias = BrokerConfigModel.model_fields[kwargs_attr].alias or kwargs_attr
-    type_alias = BrokerConfigModel.model_fields[type_attr].alias or type_attr
-    topic_alias = BrokerConfigModel.model_fields[topic_attr].alias or topic_attr
+    kwargs_alias = BrokerConfigModel.model_fields[BROKER_KWARGS].alias or BROKER_KWARGS
+    type_alias = BrokerConfigModel.model_fields[BROKER_TYPE].alias or BROKER_TYPE
+    topic_alias = BrokerConfigModel.model_fields[TOPIC_OR_QUEUE].alias or TOPIC_OR_QUEUE
     return kwargs_alias, type_alias, topic_alias
 
 
@@ -34,10 +37,10 @@ def _extract_defaults_by_type(raw_data: dict[str, Any]) -> tuple[str, dict[str, 
                 continue
 
             # Ensure topic_or_queue is not null
-            if not default_item.get("topic_or_queue") and not default_item.get(topic_alias):
+            if not default_item.get(TOPIC_OR_QUEUE) and not default_item.get(topic_alias):
                 default_item[topic_alias] = ""
 
-            b_type = default_item.get("broker_type") or default_item.get(type_alias)
+            b_type = default_item.get(BROKER_TYPE) or default_item.get(type_alias)
             if b_type:
                 b_type_str = b_type.value if hasattr(b_type, "value") else str(b_type)
                 defaults_by_type[b_type_str.lower()] = default_item
@@ -64,7 +67,7 @@ def _apply_broker_defaults_to_section(
     kwargs_alias, type_alias, _ = _get_field_aliases()
 
     # Determine broker type or use global fallback
-    broker_type_val = broker_dict.get("broker_type") or broker_dict.get(type_alias)
+    broker_type_val = broker_dict.get(BROKER_TYPE) or broker_dict.get(type_alias)
     if not broker_type_val:
         broker_type_str = global_default
         broker_dict[type_alias] = global_default
@@ -74,9 +77,8 @@ def _apply_broker_defaults_to_section(
     # Merge kwargs if a default configuration exists
     matched_default = defaults_by_type.get(broker_type_str.lower())
     if matched_default:
-        default_kwargs = matched_default.get("broker_kwargs") or matched_default.get(kwargs_alias) or {}
-        thread_kwargs = broker_dict.get("broker_kwargs") or broker_dict.get(kwargs_alias) or {}
+        default_kwargs = matched_default.get(BROKER_KWARGS) or matched_default.get(kwargs_alias) or {}
+        thread_kwargs = broker_dict.get(BROKER_KWARGS) or broker_dict.get(kwargs_alias) or {}
 
         if isinstance(default_kwargs, dict) and isinstance(thread_kwargs, dict):
             broker_dict[kwargs_alias] = {**default_kwargs, **thread_kwargs}
-

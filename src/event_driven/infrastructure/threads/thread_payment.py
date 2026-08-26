@@ -1,4 +1,5 @@
 """Payment worker thread implementation."""
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -24,7 +25,7 @@ class PaymentThread(BaseWorkerThread[BaseModel, BaseModel]):
             config=config
         )
 
-    def process_payload(self, payload: BaseModel) -> BaseModel | None:
+    def process_payload(self, payload: BaseModel) -> Optional[BaseModel]:
         """Process a validated payment payload."""
         logger.info(f"[{self.name}] Processing payment...")
         return None

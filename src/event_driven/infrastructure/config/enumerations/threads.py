@@ -10,6 +10,8 @@ class ThreadsEnum(StrEnum):
     NOTIFICATION = "notification"
     ORDER = "order"
     PAYMENT = "payment"
+    PRODUCER = "producer"
+    WITHOUT_ASSIGNATION = "without_assignation"
 
     @classmethod
     def _missing_(cls, value: object) -> None:

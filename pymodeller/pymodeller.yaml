@@ -14,6 +14,8 @@ enumerations:
       - notification
       - order
       - payment
+      - producer
+      - without_assignation
 
 
 models:
@@ -123,7 +125,8 @@ models:
     variables:
       - name: name
         description: Thread name.
-        type: str
+        from_enum: Threads
+        default: without_assignation
       - name: consumer
         description: Configuration for consuming messages. Set to None for producer-only threads.
         from_model: Broker Config

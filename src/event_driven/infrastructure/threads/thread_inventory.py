@@ -1,6 +1,7 @@
 """Inventory worker thread implementation."""
 
 import logging
+from typing import Optional
 
 from event_driven.domain.schemas import CartItemsModel, OrderCreatedModel
 from event_driven.infrastructure.config.schemas import ThreadConfigModel, BrokerConfigModel
@@ -28,7 +29,7 @@ class InventoryThread(BaseWorkerThread[CartItemsModel, OrderCreatedModel]):
             payload_model=CartItemsModel,
         )
 
-    def process_payload(self, payload: CartItemsModel) -> OrderCreatedModel | None:
+    def process_payload(self, payload: CartItemsModel) -> Optional[OrderCreatedModel]:
         """Process an inventory item and optionally emit an output event."""
         logger.info(
             f"Processing inventory for item ID: {payload.id if hasattr(payload, 'id') else 'unknown'}"

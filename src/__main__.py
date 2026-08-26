@@ -1,14 +1,18 @@
 import signal
 import sys
 import time
+from pathlib import Path
+from typing import Any
 
+import yaml
 from pydantic import BaseModel
 
-from event_driven.infrastructure.config.enumerations import BrokersEnum
+from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
 from event_driven.infrastructure.messaging.broker_factory import MessageBrokerFactory
 from event_driven.infrastructure.messaging.brokers import IMessageBroker
-from event_driven.infrastructure.threads import InventoryThread, ThreadManager, OrderThread, ProducerThread
+from event_driven.infrastructure.threads import InventoryThread, ThreadManager, ProducerThread
 from event_driven.logger import get_logger, propagate_loggers
+from event_driven.infrastructure.config.resolved import ThreadsConfigurations
 
 logger = get_logger(__name__)
 
@@ -19,16 +23,22 @@ def main() -> None:
     # 1. Instantiate the Thread Manager
     # (max_retries=3 is default, meaning it will retry up to 3 times per thread)
     manager = ThreadManager(max_retries=3, check_interval=5.0)
-    message_broker: IMessageBroker = MessageBrokerFactory.create_broker(BrokersEnum.RABBITMQ)
-    message_broker_2: IMessageBroker = MessageBrokerFactory.create_broker(BrokersEnum.RABBITMQ)
+    path = Path("pymodeller/threads.yaml")
 
+    if path.exists():
+        with open(path, "r", encoding="utf-8") as file:
+            raw_data: dict[str, Any] = yaml.safe_load(file) or {}
+
+        # Carga automática limpia en una sola línea
+        config = ThreadsConfigurations.model_validate(raw_data)
+    f = 1
     # 2. Register worker threads
     # Now we pass:
     #   - An initial instance of the thread
     #   - The class itself (InventoryThread / OrderServiceThread)
     #   - The keyword arguments needed to re-instantiate it if it fails
-    # manager.add_thread(ProducerThread, config=config)
-    # manager.add_thread(InventoryThread, broker=message_broker_2)
+    manager.add_thread(ProducerThread, config=config.get_thread_config(thread_name=ThreadsEnum.PRODUCER))
+    manager.add_thread(InventoryThread, config=config.get_thread_config(thread_name=ThreadsEnum.INVENTORY))
 
     # manager.add_thread(OrderThread, broker=message_broker)
 

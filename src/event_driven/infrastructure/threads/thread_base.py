@@ -10,7 +10,7 @@ import json
 import logging
 import threading
 import traceback
-from typing import Any, Generator, Generic, TypeVar
+from typing import Any, Generator, Generic, TypeVar, Optional
 
 from pydantic import BaseModel, ValidationError
 
@@ -86,7 +86,7 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
             self.error_broker = self.broker_factory.create_broker(aux_.broker_type, **kwargs_)
 
     @abc.abstractmethod
-    def process_payload(self, payload: PayloadT) -> OutputT | None:
+    def process_payload(self, payload: PayloadT) -> Optional[OutputT]:
         """Execute worker business logic for a validated message.
 
         Args:
