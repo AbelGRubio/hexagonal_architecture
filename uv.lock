@@ -522,6 +522,7 @@ source = { editable = "." }
 dependencies = [
     { name = "confluent-kafka" },
     { name = "orjson" },
+    { name = "peewee" },
     { name = "pika" },
     { name = "psutil" },
     { name = "py-cpuinfo" },
@@ -566,6 +567,7 @@ test = [
 requires-dist = [
     { name = "confluent-kafka", specifier = ">=2.3.0" },
     { name = "orjson", specifier = ">=3.11.9" },
+    { name = "peewee", specifier = ">=4.3.0" },
     { name = "pika", specifier = ">=1.4.4" },
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "py-cpuinfo", specifier = ">=9.0.0" },

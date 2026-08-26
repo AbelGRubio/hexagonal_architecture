@@ -31,6 +31,7 @@ dependencies = [
     "confluent-kafka>=2.3.0",
     "pika>=1.4.4",
     "starlette>=1.6.0",
+    "peewee>=4.3.0",
 ]
 
 

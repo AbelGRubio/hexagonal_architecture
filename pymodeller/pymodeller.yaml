@@ -250,7 +250,7 @@ models:
         from_model: CartItem
         default: []
 
-  - name: orderCreated
+  - name: order Created
     description: Order creation
     type: peewee
     env_prefix: order_created

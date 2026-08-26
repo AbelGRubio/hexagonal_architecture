@@ -1,0 +1,32 @@
+from typing import Optional
+
+from event_driven.domain.ports import BasePort
+from event_driven.domain.schemas.order_created import OrderCreatedModel
+from event_driven.infrastructure.persistence.models import OrderCreated
+
+
+class AdapterOrderCreated(BasePort):
+    """Concrete Peewee ORM adapter implementing BasePort."""
+
+    def save(self, entity: OrderCreatedModel) -> None:
+        # Convert Pydantic schema to Peewee ORM model
+        OrderCreated.create(
+            order_id=entity.order_id,
+            items=entity.items
+        )
+
+    def get_by_id(self, entity_id: str) -> Optional[OrderCreatedModel]:
+        record = OrderCreated.get_or_none(OrderCreated.order_id == entity_id)
+        if not record:
+            return None
+        return OrderCreatedModel(order_id=record.order_id, items=record.items)
+
+    def delete(self, entity_id: str) -> None:
+        OrderCreated.delete().where(OrderCreated.order_id == entity_id).execute()
+
+    def get_by_customer_id(self, customer_id: str) -> list[OrderCreatedModel]:
+        records = OrderCreated.select().where(OrderCreated.customer_id == customer_id)
+        return [
+            OrderCreatedModel(order_id=r.order_id, items=r.items)
+            for r in records
+        ]

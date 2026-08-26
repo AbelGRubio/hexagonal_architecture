@@ -1,6 +1,6 @@
 """AUTO-GENERATED MODELS PACKAGE."""
 
 from .cart_item import Cartitem
-from .order_created import Ordercreated
+from .order_created import OrderCreated
 
-__all__ = ["Cartitem", "Ordercreated"]
+__all__ = ["Cartitem", "OrderCreated"]

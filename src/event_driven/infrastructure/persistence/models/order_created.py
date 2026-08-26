@@ -5,7 +5,7 @@ from peewee import CharField, Model
 from event_driven.infrastructure.persistence.connection import get_database
 
 
-class Ordercreated(Model):
+class OrderCreated(Model):
     """Order creation."""
 
     event_id = CharField(default="xxx555", null=True)

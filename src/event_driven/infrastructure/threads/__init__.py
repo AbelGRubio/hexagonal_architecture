@@ -1,6 +1,6 @@
 """AUTO-GENERATED MODELS PACKAGE."""
 
-from .thread_base_old import BaseWorkerThread
+from .thread_base import BaseWorkerThread
 from .thread_inventory import InventoryThread
 from .thread_manager import ThreadManager
 from .thread_notification import NotificationThread

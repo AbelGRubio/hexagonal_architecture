@@ -4,10 +4,11 @@ import logging
 from typing import Optional
 
 from event_driven.domain.schemas import CartItemsModel, OrderCreatedModel
-from event_driven.infrastructure.config.schemas import ThreadConfigModel, BrokerConfigModel
-from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
-
+from event_driven.infrastructure.config.schemas import ThreadConfigModel
 from .thread_base import BaseWorkerThread
+from ..persistence.adapter import AdapterOrderCreated
+from ..persistence.adapter.adapter_check_inventory import AdapterCheckInventory
+from ...domain.use_case import CheckInventoryUseCase
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +30,15 @@ class InventoryThread(BaseWorkerThread[CartItemsModel, OrderCreatedModel]):
             payload_model=CartItemsModel,
         )
 
+        db_adapter = AdapterCheckInventory()
+
+        self.use_case = CheckInventoryUseCase(adapter=db_adapter)
+
     def process_payload(self, payload: CartItemsModel) -> Optional[OrderCreatedModel]:
         """Process an inventory item and optionally emit an output event."""
         logger.info(
             f"Processing inventory for item ID: {payload.id if hasattr(payload, 'id') else 'unknown'}"
         )
+        self.use_case.execute(payload)
 
         return None
