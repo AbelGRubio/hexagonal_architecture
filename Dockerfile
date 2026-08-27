@@ -59,8 +59,6 @@ RUN useradd -m -u 1000 bedrock_agentcore
 WORKDIR /app
 
 RUN mkdir -p /app/.logs && chown -R 1000:1000 /app/.logs
-RUN mkdir -p /app/.langgraph_api && chown -R 1000:1000 /app/.langgraph_api
-
 USER bedrock_agentcore
 
 # ──────────────────────────────────────────────
@@ -76,4 +74,4 @@ COPY --chown=bedrock_agentcore:bedrock_agentcore src/ src/
 # ──────────────────────────────────────────────
 # Entrypoint / CMD
 # ──────────────────────────────────────────────
-CMD ["opentelemetry-instrument", "python", "src.__main__"]
+CMD ["opentelemetry-instrument", "python", "src"]
