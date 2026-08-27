@@ -1,5 +1,2 @@
-"""AUTO-GENERATED MODELS PACKAGE."""
-
-from .logger import DictNormalizerFilter, JsonFormatter, LoggerApi, UvicornFilter
-
-__all__ = ["DictNormalizerFilter", "JsonFormatter", "LoggerApi", "UvicornFilter"]
+"""event_driven package entry point."""
+__version__ = '0.1.0'

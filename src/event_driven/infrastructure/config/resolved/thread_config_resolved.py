@@ -95,7 +95,7 @@ if __name__ == '__main__':
     import yaml
     from pathlib import Path
 
-    path = Path("../../../../../pymodeller/threads.yaml")
+    path = Path("../threads.yaml")
 
     if path.exists():
         with open(path, "r", encoding="utf-8") as file:

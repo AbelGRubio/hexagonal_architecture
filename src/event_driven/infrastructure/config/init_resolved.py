@@ -9,6 +9,9 @@ import yaml
 from event_driven.infrastructure.config.resolved import ThreadsConfigurations
 
 
+DEFAULT_YAML_PATH = Path(__file__).parent / "threads.yaml"
+
+
 def _read_yaml(config_path: Path) -> dict:
     """Read YAML file safely."""
     if not config_path.is_file():
@@ -18,13 +21,13 @@ def _read_yaml(config_path: Path) -> dict:
 
 
 @lru_cache(maxsize=1)
-def get_threads_configurations(path: Optional[Path] = Path("pymodeller/threads.yaml")) -> ThreadsConfigurations:
+def get_threads_configurations(path: Optional[Path] = None) -> ThreadsConfigurations:
     """Return the cached application settings instance for AwsConfigurationSettings.
 
     Source: None.
     """
     # Single file loading
-    path = path if path else Path("threads.yaml")
+    path = path if path else Path(DEFAULT_YAML_PATH)
     values = _read_yaml(path)
     return ThreadsConfigurations(**values)
 

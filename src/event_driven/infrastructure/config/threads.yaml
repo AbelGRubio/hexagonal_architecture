@@ -2,7 +2,7 @@
 # Global Event-Driven Architecture Configuration
 # ==============================================================================
 
-# 1. Configuración global por defecto para TODOS los hilos del archivo
+# 1. Global default configuration for ALL threads in the file
 default: rabbitmq
 
 broker_config:
@@ -16,9 +16,9 @@ broker_config:
       bootstrap_servers: ["kafka-broker:9092"]
       group_id: default-group
 
-# 2. Lista de configuraciones de hilos
+# 2. List of thread configurations
 threads:
-  # Thread 1: Productor sintético de ítems de carrito
+  # Thread 1: Synthetic cart items producer
   - name: producer
     producer:
       topicOrQueue: cart-items
@@ -26,7 +26,7 @@ threads:
     error:
       topicOrQueue: cart-items-dlq
 
-  # Thread 2: Consumidor de inventario que procesa carritos
+  # Thread 2: Inventory consumer processing carts
   - name: inventory
     consumer:
       topicOrQueue: cart-items
@@ -37,6 +37,7 @@ threads:
     error:
       topicOrQueue: inventory-dlq
 
+  # Thread 3: Order management processing reserved inventory
   - name: order
     consumer:
       topicOrQueue: inventory-reserved
@@ -47,7 +48,7 @@ threads:
     error:
       topicOrQueue: payment-dlq
 
-  # Thread 4: Procesamiento del pago (recibe orden/pago, publica evento de notificación)
+  # Thread 4: Payment processing (receives order/payment, publishes notification event)
   - name: payment
     consumer:
       topicOrQueue: payment
@@ -58,7 +59,7 @@ threads:
     error:
       topicOrQueue: payment-dlq
 
-  # Thread 5: Notificación al usuario (paso final del flujo)
+  # Thread 5: User notification (final step of the flow)
   - name: notification
     consumer:
       topicOrQueue: notification

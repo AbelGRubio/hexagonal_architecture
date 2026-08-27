@@ -1,7 +1,7 @@
 [project]
 name = "event_driven_architecture"
 version = "0.1.0"
-description = "A CLI tool designed to synchronize infrastructure requirements with Python application code"
+description = "An example of event_driven system with hexagonal architecture"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
@@ -150,7 +150,7 @@ convention = "google"
 
 
 [tool.ruff.lint.isort]
-known-first-party = ["pymodeller"]
+known-first-party = ["event_driven"]
 section-order = [
     "future",
     "standard-library",
@@ -213,7 +213,7 @@ pythonpath = [
 addopts = [
     "-n",
     "auto",
-    "--cov=src/pymodeller",
+    "--cov=src/event_driven",
     "--cov-report=xml",
     "--cov-report=json",
     "--cov-report=html",
@@ -226,11 +226,8 @@ python_functions = "test_* it_* should_* scenario_*"
 
 [tool.coverage.run]
 omit = [
-    "*.jinja",
-    "*.jinja2",
-    "**/*.jinja",
-    "**/*.jinja2",
-    "**/templates/*",
+    "*.yaml",
+    "**/*.yaml",
 ]
 
 
@@ -240,7 +237,7 @@ allow_zero_version = true
 tag_format = "v{version}"
 version_variables = [
     "pyproject.toml:version",
-    "src/pymodeller/__init__.py:__version__"
+    "src/event_driven/__init__.py:__version__"
 ]
 
 [tool.semantic_release.changelog]
@@ -261,13 +258,13 @@ prerelease = true
 prerelease_token = "rc"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pymodeller"]
+packages = ["src/event_driven"]
 include = [
-    "src/pymodeller/templates/*.jinja"
+    "src/event_driven/infrastructure/config/threads.yaml"
 ]
 
 [tool.hatch.build]
-artifacts = ["src/pymodeller/templates/*.jinja"]
+artifacts = ["src/event_driven/infrastructure/config/threads.yaml"]
 
 [build-system]
 requires = ["hatchling"]
@@ -276,7 +273,7 @@ build-backend = "hatchling.build"
 
 # Add executable scripts
 [project.scripts]
-pymodeller = "pymodeller.cli.cli:main"
+event-driven = "event_driven.infrastructure.cli.cli:main"
 
 
 [tool.uv.sources]

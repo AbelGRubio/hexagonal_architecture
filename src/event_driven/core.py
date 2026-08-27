@@ -5,7 +5,7 @@ from event_driven.infrastructure.config.enumerations import ThreadsEnum
 from event_driven.infrastructure.config.init_resolved import get_threads_configurations
 from event_driven.infrastructure.threads import InventoryThread, ThreadManager, ProducerThread, OrderThread, \
     NotificationThread, PaymentThread
-from event_driven.logger import get_logger, propagate_loggers
+from event_driven.logger import get_logger
 
 logger = get_logger(__name__)
 
