@@ -7,10 +7,10 @@ from typing import Optional
 import yaml
 
 from event_driven.infrastructure.config.resolved import ThreadsConfigurations
-
+import os
 
 DEFAULT_YAML_PATH = Path(__file__).parent / "threads.yaml"
-
+ENV_VAR_NAME = "ED_THREAD_CONF"
 
 def _read_yaml(config_path: Path) -> dict:
     """Read YAML file safely."""
@@ -26,8 +26,8 @@ def get_threads_configurations(path: Optional[Path] = None) -> ThreadsConfigurat
 
     Source: None.
     """
+    path = Path(os.getenv(ENV_VAR_NAME) or path or DEFAULT_YAML_PATH)
     # Single file loading
-    path = path if path else Path(DEFAULT_YAML_PATH)
     values = _read_yaml(path)
     return ThreadsConfigurations(**values)
 
