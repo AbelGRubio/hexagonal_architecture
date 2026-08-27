@@ -1,5 +1,6 @@
 """AUTO-GENERATED SETTINGS MANAGER."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional
@@ -7,7 +8,6 @@ from typing import Optional
 import yaml
 
 from event_driven.infrastructure.config.resolved import ThreadsConfigurations
-import os
 
 DEFAULT_YAML_PATH = Path(__file__).parent / "threads.yaml"
 ENV_VAR_NAME = "ED_THREAD_CONF"
