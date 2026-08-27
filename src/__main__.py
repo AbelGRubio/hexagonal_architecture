@@ -1,18 +1,15 @@
 import signal
 import sys
-import time
 from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel
 
-from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
-from event_driven.infrastructure.messaging.broker_factory import MessageBrokerFactory
-from event_driven.infrastructure.messaging.brokers import IMessageBroker
-from event_driven.infrastructure.threads import InventoryThread, ThreadManager, ProducerThread, OrderThread
-from event_driven.logger import get_logger, propagate_loggers
+from event_driven.infrastructure.config.enumerations import ThreadsEnum
 from event_driven.infrastructure.config.resolved import ThreadsConfigurations
+from event_driven.infrastructure.threads import InventoryThread, ThreadManager, ProducerThread, OrderThread, \
+    NotificationThread, PaymentThread
+from event_driven.logger import get_logger, propagate_loggers
 
 logger = get_logger(__name__)
 
@@ -40,6 +37,8 @@ def main() -> None:
     manager.add_thread(ProducerThread, config=config.get_thread_config(thread_name=ThreadsEnum.PRODUCER))
     manager.add_thread(InventoryThread, config=config.get_thread_config(thread_name=ThreadsEnum.INVENTORY))
     manager.add_thread(OrderThread, config=config.get_thread_config(thread_name=ThreadsEnum.ORDER))
+    manager.add_thread(PaymentThread, config=config.get_thread_config(thread_name=ThreadsEnum.PAYMENT))
+    manager.add_thread(NotificationThread, config=config.get_thread_config(thread_name=ThreadsEnum.NOTIFICATION))
 
     # manager.add_thread(OrderThread, broker=message_broker)
 

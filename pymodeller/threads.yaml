@@ -42,6 +42,25 @@ threads:
       topicOrQueue: inventory-reserved
       exchange: inventory-exchange
     producer:
+      topicOrQueue: payment
+      exchange: payment-exchange
+    error:
+      topicOrQueue: payment-dlq
+
+  # Thread 4: Procesamiento del pago (recibe orden/pago, publica evento de notificación)
+  - name: payment
+    consumer:
+      topicOrQueue: payment
+      exchange: payment-exchange
+    producer:
+      topicOrQueue: notification
+      exchange: notification-exchange
+    error:
+      topicOrQueue: payment-dlq
+
+  # Thread 5: Notificación al usuario (paso final del flujo)
+  - name: notification
+    consumer:
       topicOrQueue: notification
       exchange: notification-exchange
     error:

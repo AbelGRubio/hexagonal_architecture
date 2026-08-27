@@ -1,5 +1,6 @@
 """Auto-generated settings from YAML spec."""
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
@@ -36,8 +37,8 @@ class OrderCreatedModel(BaseModel):
         description="Order id",
     )
 
-    timestamp: str = Field(
-        default="timestamp.now",
+    timestamp: datetime | None = Field(
+        default=datetime.now(),
         alias="timestamp",
         validation_alias=AliasChoices("TIMESTAMP", "timestamp"),
         description="Order timestamp",

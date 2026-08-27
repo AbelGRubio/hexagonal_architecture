@@ -4,11 +4,10 @@ import logging
 from typing import Optional
 
 from event_driven.domain.schemas import CartItemsModel, OrderCreatedModel
+from event_driven.domain.use_case import CheckInventoryUseCase
 from event_driven.infrastructure.config.schemas import ThreadConfigModel
+from event_driven.infrastructure.persistence.adapter.adapter_check_inventory import AdapterCheckInventory
 from .thread_base import BaseWorkerThread
-from ..persistence.adapter import AdapterOrderCreated
-from ..persistence.adapter.adapter_check_inventory import AdapterCheckInventory
-from ...domain.use_case import CheckInventoryUseCase
 
 logger = logging.getLogger(__name__)
 

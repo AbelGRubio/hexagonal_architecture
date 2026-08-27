@@ -27,7 +27,7 @@ class CheckInventoryUseCase:
                 event_id=payload.id,
                 order_id=str(uuid.uuid4()),
                 user_id=str(uuid.uuid4()),
-                timestamp=str(datetime.now()),
+                timestamp=datetime.now(),
                 items=payload.items,
             )
             return order

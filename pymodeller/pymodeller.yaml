@@ -200,8 +200,65 @@ models:
 
       - name: timestamp
         description: Order timestamp
-        type: timestamp
-        default: timestamp.now
+        type: datetime
+        required: false
+
+  - name: Payment
+    type: model
+    description: Payment processing details
+    destination: domain
+    include_general: false
+    variables:
+      - name: event_id
+        type: str
+        description: Event id
+        default: 777xxx
+        required: false
+
+      - name: payment_id
+        type: str
+        description: Payment identification
+        default: pay_999xxx
+        required: false
+
+      - name: order_id
+        type: str
+        description: Order id associated with the payment
+        default: 9999xxx
+        required: false
+
+      - name: user_id
+        type: str
+        description: User id
+        required: false
+
+      - name: amount
+        type: float
+        description: Total payment amount
+        default: 0.0
+        required: false
+
+      - name: currency
+        type: str
+        description: Currency code (e.g. EUR, USD)
+        default: EUR
+        required: false
+
+      - name: status
+        type: str
+        description: Payment processing status
+        default: PENDING
+        required: false
+
+      - name: payment_method
+        type: str
+        description: Payment method used
+        default: CREDIT_CARD
+        required: false
+
+      - name: timestamp
+        type: datetime
+        description: Payment processing timestamp
         required: false
 
   - name: CartItem
@@ -250,6 +307,8 @@ models:
         from_model: CartItem
         default: []
 
+
+
   - name: order Created
     description: Order creation
     type: peewee
@@ -283,8 +342,7 @@ models:
 
       - name: timestamp
         description: Order timestamp
-        type: timestamp
-        default: timestamp.now
+        type: datetime
         required: false
 
   - name: CartItem
@@ -317,22 +375,57 @@ models:
 
   - name: Notification
     type: model
-    description: Notification item
+    description: Notification event details
     destination: domain
     include_general: false
     variables:
-      - name: notification_id
-        description: notification id
+      - name: event_id
         type: str
-        default: xxxx7
+        description: Event id
+        default: 666xxx
+        required: false
+
+      - name: notification_id
+        type: str
+        description: Notification identification
+        default: notif_111xxx
+        required: false
+
+      - name: order_id
+        type: str
+        description: Associated Order id
+        default: 9999xxx
         required: false
 
       - name: user_id
-        description: User name
         type: str
+        description: User id recipient
         required: false
 
-      - name: content
-        description: message content
+      - name: channel
         type: str
+        description: Channel used to deliver the notification
+        default: EMAIL
+        required: false
+
+      - name: subject
+        type: str
+        description: Subject of the notification
+        default: Order Update
+        required: false
+
+      - name: message
+        type: str
+        description: Body content of the notification
+        default: NoContent
+
+      - name: status
+        type: str
+        description: Delivery status of the notification
+        default: PENDING
+        required: false
+
+      - name: timestamp
+        type: datetime
+        description: Notification timestamp
         required: false

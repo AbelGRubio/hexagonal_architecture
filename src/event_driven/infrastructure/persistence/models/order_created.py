@@ -1,6 +1,6 @@
 """Auto-generated Peewee model."""
 
-from peewee import CharField, Model
+from peewee import CharField, DateTimeField, Model
 
 from event_driven.infrastructure.persistence.connection import get_database
 
@@ -14,7 +14,7 @@ class OrderCreated(Model):
 
     order_id = CharField(default="xxx999", null=True)
 
-    timestamp = CharField(default="timestamp.now", null=True)
+    timestamp = DateTimeField(null=True)
 
     user_id = CharField(null=True)
 
