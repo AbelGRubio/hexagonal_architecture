@@ -273,7 +273,7 @@ build-backend = "hatchling.build"
 
 # Add executable scripts
 [project.scripts]
-event-driven = "event_driven.infrastructure.cli.cli:main"
+event-driven = "event_driven.infrastructure.cli.cli:app"
 
 
 [tool.uv.sources]
