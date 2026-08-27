@@ -14,7 +14,7 @@ from typing import Any, Generator, Generic, TypeVar, Optional
 
 from pydantic import BaseModel, ValidationError
 
-from event_driven.infrastructure.config.schemas import BrokerConfigModel, ThreadConfigModel
+from event_driven.infrastructure.config.schemas import ThreadConfigModel
 from event_driven.infrastructure.messaging.brokers import IMessageBroker
 from event_driven.infrastructure.messaging import MessageBrokerFactory
 
