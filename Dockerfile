@@ -2,7 +2,7 @@
 # Stage 1: Build — install dependencies
 # ──────────────────────────────────────────────
 # linux/amd64 avoids ARM64 SIGILL from native-code wheels on Apple Silicon
-FROM --platform=linux/amd64 astral/uv:python3.13-bookworm-slim AS build
+FROM astral/uv:python3.13-bookworm-slim AS build
 
 
 # ──────────────────────────────────────────────
@@ -16,7 +16,6 @@ ENV UV_NO_DEV=1 \
 # ──────────────────────────────────────────────
 # Copy (parent project)
 # ──────────────────────────────────────────────
-COPY --from=observe-core . /observe_core
 COPY src/ /app/src/
 COPY pyproject.toml /app/
 
@@ -32,7 +31,7 @@ RUN uv sync --no-dev --no-editable
 # ──────────────────────────────────────────────
 # Stage 2: Run — minimal runtime image
 # ──────────────────────────────────────────────
-FROM --platform=linux/amd64 astral/uv:python3.13-bookworm-slim AS run
+FROM astral/uv:python3.13-bookworm-slim AS run
 
 
 # ──────────────────────────────────────────────
@@ -59,6 +58,7 @@ RUN useradd -m -u 1000 bedrock_agentcore
 WORKDIR /app
 
 RUN mkdir -p /app/.logs && chown -R 1000:1000 /app/.logs
+
 USER bedrock_agentcore
 
 # ──────────────────────────────────────────────
@@ -74,4 +74,4 @@ COPY --chown=bedrock_agentcore:bedrock_agentcore src/ src/
 # ──────────────────────────────────────────────
 # Entrypoint / CMD
 # ──────────────────────────────────────────────
-CMD ["opentelemetry-instrument", "python", "src"]
+CMD ["opentelemetry-instrument", "python", "src.__main__"]

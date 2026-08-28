@@ -18,6 +18,7 @@ endif
 # ──────────────────────────────────────────────────────────────────────────────
 include make/build.mk
 include make/clean.mk
+include make/docker.mk
 include make/docs.mk
 include make/qa.mk
 include make/settings.mk
