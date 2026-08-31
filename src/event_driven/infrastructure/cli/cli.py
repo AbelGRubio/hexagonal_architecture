@@ -9,10 +9,12 @@ import typer
 from event_driven.infrastructure.config.enumerations import ThreadsEnum
 from event_driven.infrastructure.config.init_resolved import get_threads_configurations
 from event_driven.infrastructure.threads import ThreadManager, THREAD_REGISTRY, BaseWorkerThread
-from event_driven.logger import get_logger
+from event_driven.logger import get_logger, propagate_loggers
 
 logger = get_logger("CLI")
 console = logger.console
+
+propagate_loggers()
 
 app = typer.Typer(
     name="event-driven-cli",

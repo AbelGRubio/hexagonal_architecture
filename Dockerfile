@@ -16,8 +16,7 @@ ENV UV_NO_DEV=1 \
 # ──────────────────────────────────────────────
 # Copy (parent project)
 # ──────────────────────────────────────────────
-COPY src/ /app/src/
-COPY pyproject.toml /app/
+COPY . .
 
 # ──────────────────────────────────────────────
 # Authenticate and sync UV dependencies
@@ -26,7 +25,7 @@ WORKDIR /app
 
 RUN mkdir -p /app
 
-RUN uv sync --no-dev --no-editable
+RUN uv sync --no-dev --no-editable --group docker
 
 # ──────────────────────────────────────────────
 # Stage 2: Run — minimal runtime image
@@ -74,4 +73,4 @@ COPY --chown=bedrock_agentcore:bedrock_agentcore src/ src/
 # ──────────────────────────────────────────────
 # Entrypoint / CMD
 # ──────────────────────────────────────────────
-CMD ["opentelemetry-instrument", "python", "src.__main__"]
+CMD ["opentelemetry-instrument", "python", "src"]

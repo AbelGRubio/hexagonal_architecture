@@ -7,9 +7,6 @@ default: rabbitmq
 
 broker_config:
   - broker_type: rabbitmq
-    broker_kwargs:
-      host: localhost
-      port: 5672
 
   - broker_type: kafka
     broker_kwargs:

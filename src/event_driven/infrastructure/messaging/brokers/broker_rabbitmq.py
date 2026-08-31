@@ -3,6 +3,7 @@
 This module provides a concrete adapter for RabbitMQ using the pika client.
 """
 
+import os
 from typing import Any, Generator
 
 import orjson
@@ -23,7 +24,15 @@ class RabbitMQAdapter(IMessageBroker):
 
     def __init__(self, **kwargs: Any) -> None:
         """Create a blocking RabbitMQ connection and open its channel."""
-        connection_params = self.DEFAULT_PARAMS | kwargs
+        connection_params = self._get_default_params()
+
+        if "username" in kwargs and "password" in kwargs:
+            kwargs["credentials"] = pika.PlainCredentials(
+                kwargs.pop("username"),
+                kwargs.pop("password")
+            )
+
+        connection_params |= kwargs
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(**connection_params))
         self.channel = self.connection.channel()
 
@@ -94,3 +103,22 @@ class RabbitMQAdapter(IMessageBroker):
     def ack(self, delivery_tag: int) -> None:
         """Acknowledge a specific message delivery tag in RabbitMQ."""
         self.channel.basic_ack(delivery_tag=delivery_tag)
+
+    def _get_default_params(self) -> dict[str, Any]:
+        """Load default parameters combining class defaults and environment variables."""
+        params: dict[str, Any] = {
+            "host": os.getenv("RABBITMQ_HOST", self.DEFAULT_PARAMS["host"]),
+            "port": int(os.getenv("RABBITMQ_PORT", self.DEFAULT_PARAMS["port"])),
+            "heartbeat": int(os.getenv("RABBITMQ_HEARTBEAT", self.DEFAULT_PARAMS["heartbeat"])),
+            "blocked_connection_timeout": int(
+                os.getenv("RABBITMQ_TIMEOUT", self.DEFAULT_PARAMS["blocked_connection_timeout"])
+            ),
+        }
+
+        user = os.getenv("RABBITMQ_DEFAULT_USER") or os.getenv("RABBITMQ_USER") or "guest"
+        password = os.getenv("RABBITMQ_DEFAULT_PASS") or os.getenv("RABBITMQ_PASS") or "guest"
+
+        if user and password:
+            params["credentials"] = pika.PlainCredentials(user, password)
+
+        return params
