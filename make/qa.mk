@@ -34,6 +34,8 @@ lint:  ## Auto-fix lint issues with ruff
 
 .PHONY: test
 test: sync  ## Run test suite
+	@echo "$(ARROW) Syncing test environment..."
+	@uv sync --group test
 	@echo "$(ARROW) Running tests..."
 	@uv run pytest -m "not functional" || { echo "❌ Tests failed."; exit 1; }
 	@echo "All tests passed $(OK)"

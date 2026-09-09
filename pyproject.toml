@@ -235,6 +235,8 @@ python_functions = "test_* it_* should_* scenario_*"
 omit = [
     "*.yaml",
     "**/*.yaml",
+    "**/__pycache__/**",
+    "**/__init__.py"
 ]
 
 

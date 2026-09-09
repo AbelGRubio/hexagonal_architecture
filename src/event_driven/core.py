@@ -51,4 +51,3 @@ def main() -> None:
         shutdown_handler(None, None)
 
     logger.info("Application ended")
-
