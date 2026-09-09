@@ -29,7 +29,7 @@ class AdapterCheckInventory(BasePort):
         OrderCreated.delete().where(OrderCreated.order_id == entity_id).execute()
 
     def get_by_customer_id(self, customer_id: str) -> list[OrderCreatedModel]:
-        records = OrderCreated.select().where(OrderCreated.customer_id == customer_id)
+        records = OrderCreated.select().where(OrderCreated.user_id == customer_id)
         return [
             OrderCreatedModel(order_id=r.order_id, items=r.items)
             for r in records

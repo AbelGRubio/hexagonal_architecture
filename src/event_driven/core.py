@@ -29,8 +29,6 @@ def main() -> None:
     manager.add_thread(PaymentThread, config=config.get_thread_config(thread_name=ThreadsEnum.PAYMENT))
     manager.add_thread(NotificationThread, config=config.get_thread_config(thread_name=ThreadsEnum.NOTIFICATION))
 
-    # manager.add_thread(OrderThread, broker=message_broker)
-
     # 3. Define graceful shutdown handler for signals (SIGINT / SIGTERM)
     def shutdown_handler(signum, frame) -> None:
         logger.info("Termination signal received. Shutting down application gracefully...")

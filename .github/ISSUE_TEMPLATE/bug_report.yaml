@@ -1,0 +1,34 @@
+
+name: Bug Report
+description: File a bug report to help us improve the distributed event-driven system.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+  - type: input
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of the system is failing? (e.g., worker-producer, RabbitMQ, LitmusChaos, Terraform script)
+      placeholder: ex. worker-order
+    validations:
+      required: true
+  - type: textarea
+    id: symptoms
+    attributes:
+      label: Symptoms / Error Logs
+      description: Paste any relevant error logs, OCI runtime errors, or container traces from Jaeger/Prometheus.
+      placeholder: "Error response from daemon..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we replicate this issue?
+      placeholder: |
+        1. Run `ansible-playbook ...`
+        2. Execute docker compose up
+        3. Trigger chaos experiment...
+    validations:
+      required: true

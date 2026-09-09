@@ -1,10 +1,12 @@
 # domain/use_cases/process_order.py
-from typing import Optional
 import uuid
+from datetime import datetime
+from logging import getLogger
+from typing import Optional
+
 from event_driven.domain.ports import BasePort
 from event_driven.domain.schemas import CartItemsModel, OrderCreatedModel
-from logging import getLogger
-from datetime import datetime
+
 logger = getLogger(__name__)
 
 

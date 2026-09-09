@@ -43,8 +43,6 @@ docker = [
     "opentelemetry-sdk",
 ]
 
-
-
 test = [
     "peewee",
     "boto3>=1.34,<2",
