@@ -27,7 +27,7 @@ class RedisConfigurationSettings(BaseTraceableSettings):
     )
 
     decode_responses: bool = Field(
-        default=True,
+        default=False,
         alias="decodeResponses",
         validation_alias=AliasChoices("DECODE_RESPONSES", "decodeResponses", "decode_responses"),
         description="Decode responses as strings.",

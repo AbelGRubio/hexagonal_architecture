@@ -6,7 +6,6 @@ from typing import Any
 from pydantic import PrivateAttr, model_validator
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 
-from .source.source_s3_secrets import S3SecretSource
 from .source.source_yaml_env import YamlEnvSource
 
 
@@ -87,9 +86,6 @@ class BaseTraceableSettings(BaseSettings):
 
         yaml_env_source = YamlEnvSource(settings_cls, current_env, env_prefix, settings_name=cls.__name__)
         active_sources.append(track_source(yaml_env_source, f"yaml_{current_env}"))
-
-        s3_source = S3SecretSource(settings_cls, wrapped_source=yaml_env_source())
-        active_sources.append(track_source(s3_source, "s3_source"))
 
         return (
             track_source(env_settings, "env_var"),

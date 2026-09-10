@@ -20,6 +20,7 @@ from tenacity import (
     wait_exponential,
 )
 
+from event_driven.infrastructure.config.init_pybreaker import broker_pybreaker
 from .interface_message import IMessageBroker
 
 logger = logging.getLogger(__name__)
@@ -60,6 +61,7 @@ class RabbitMQAdapter(IMessageBroker):
         self.channel = self.connection.channel()
         logger.info("Successfully connected to RabbitMQ.")
 
+    @broker_pybreaker()
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=5),
@@ -101,6 +103,7 @@ class RabbitMQAdapter(IMessageBroker):
             properties=pika.BasicProperties(delivery_mode=2),
         )
 
+    @broker_pybreaker()
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_exponential(multiplier=1, min=2, max=30),
@@ -165,10 +168,6 @@ class RabbitMQAdapter(IMessageBroker):
                 self.channel.cancel()
             except Exception:
                 pass
-
-    def ack(self, delivery_tag: int) -> None:
-        """Acknowledge a specific message delivery tag in RabbitMQ."""
-        self.channel.basic_ack(delivery_tag=delivery_tag)
 
     def _get_default_params(self) -> dict[str, Any]:
         """Load default parameters combining class defaults and environment variables."""
