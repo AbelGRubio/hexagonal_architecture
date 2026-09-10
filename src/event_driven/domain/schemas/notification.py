@@ -52,13 +52,6 @@ class NotificationModel(BaseModel):
         description="Associated Order id",
     )
 
-    recipient: str = Field(
-        default="NoRecipient",
-        alias="recipient",
-        validation_alias=AliasChoices("RECIPIENT", "recipient"),
-        description="Recipient contact information",
-    )
-
     status: str = Field(
         default="PENDING",
         alias="status",

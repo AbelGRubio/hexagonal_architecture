@@ -18,6 +18,16 @@ enumerations:
       - error
       - without_assignation
 
+  - name: PaymentStatus
+    destination: domain
+    description: Statuses for card payments.
+    options:
+      - PENDING
+      - PAYING
+      - PAID
+      - UNPAID
+      - FAILED
+
 
 models:
   - name: General
@@ -255,6 +265,86 @@ models:
         type: str
         description: Payment method used
         default: CREDIT_CARD
+        required: false
+
+      - name: timestamp
+        type: datetime
+        description: Payment processing timestamp
+        required: false
+
+  - name: CartPayment
+    type: model
+    description: Payment details for a shopping cart (checkout)
+    destination: domain
+    include_general: false
+    variables:
+      - name: payment_id
+        type: str
+        description: Payment identification
+        default: pay_999xxx
+        required: false
+
+      - name: cart_id
+        type: str
+        description: Cart identification
+        default: cart_000
+        required: false
+
+      - name: order_id
+        type: str
+        description: Order id associated with the payment
+        default: 9999xxx
+        required: false
+
+      - name: user_id
+        type: str
+        description: User id
+        required: false
+
+      - name: items
+        type: list
+        from_model: CartItem
+        default: []
+        description: List of cart items
+
+      - name: amount
+        type: float
+        description: Total payment amount
+        default: 0.0
+        required: false
+
+      - name: currency
+        type: str
+        description: Currency code (e.g. EUR, USD)
+        default: EUR
+        required: false
+
+      - name: status
+        type: str
+        from_enum: PaymentStatus
+        description: Card payment status
+        default: PENDING
+        required: false
+
+      - name: payment_method
+        type: str
+        description: Payment method used
+        default: CREDIT_CARD
+        required: false
+
+      - name: card_last4
+        type: str
+        description: Last 4 digits of card
+        required: false
+
+      - name: card_brand
+        type: str
+        description: Card brand
+        required: false
+
+      - name: transaction_id
+        type: str
+        description: Processor transaction id
         required: false
 
       - name: timestamp

@@ -44,6 +44,8 @@ class S3SecretSource(PydanticBaseSettingsSource):
     def __init__(self, settings_cls: type[BaseSettings], wrapped_source: dict | None = None) -> None:
         """Initialize the S3SecretSource with settings class, prefix, and AWS region."""
         super().__init__(settings_cls)
+        if not wrapped_source:
+            wrapped_source = {}
         self.wrapped_source = wrapped_source
         # boto3 client to interact with S3
         self.s3_client = get_s3_client()

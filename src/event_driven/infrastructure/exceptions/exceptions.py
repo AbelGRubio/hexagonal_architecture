@@ -22,7 +22,7 @@ class BrokerNotFoundError(BaseCustomError):
 
     def __init__(
         self,
-        message: str = "Broker not found",
+        message: str = "",
         code: str | int = "",
         description: str = "Broker not found, please select a valid one.",
     ) -> None:
@@ -39,7 +39,7 @@ class ConfigurationError(BaseCustomError):
 
     def __init__(
         self,
-        message: str = "No configuration loaded property",
+        message: str = "",
         code: str | int = "",
         description: str = "The configuration doesn't load correctly.",
     ) -> None:
@@ -56,7 +56,7 @@ class MissingConfigurationError(BaseCustomError):
 
     def __init__(
         self,
-        message: str = "Missing configuration",
+        message: str = "",
         code: str | int = "",
         description: str = "Unable to get the configuration.",
     ) -> None:

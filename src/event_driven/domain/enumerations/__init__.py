@@ -12,6 +12,7 @@ from .exceptions_http import (
     UnauthorizedException,
     ValidationException,
 )
+from .payment_status import PaymentStatusEnum
 
 __all__ = [
     "BadRequestException",
@@ -23,6 +24,7 @@ __all__ = [
     "ForbiddenException",
     "InternalDatabaseException",
     "MissingConfigurationError",
+    "PaymentStatusEnum",
     "ServiceUnavailableException",
     "UnauthorizedException",
     "ValidationException",

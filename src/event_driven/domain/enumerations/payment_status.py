@@ -3,16 +3,14 @@
 from enum import StrEnum
 
 
-class ThreadsEnum(StrEnum):
-    """Types of threads."""
+class PaymentStatusEnum(StrEnum):
+    """Statuses for card payments."""
 
-    ERROR = "error"
-    INVENTORY = "inventory"
-    NOTIFICATION = "notification"
-    ORDER = "order"
-    PAYMENT = "payment"
-    PRODUCER = "producer"
-    WITHOUT_ASSIGNATION = "without_assignation"
+    FAILED = "failed"
+    PAID = "paid"
+    PAYING = "paying"
+    PENDING = "pending"
+    UNPAID = "unpaid"
 
     @classmethod
     def _missing_(cls, value: object) -> None:
