@@ -16,7 +16,7 @@ CRITICAL: Before making any code change, you MUST also read CONVENTIONS.md — i
 ### 2. Monorepo Architecture
 - Root Package = Source of truth (all core logic lives here).
 - Dev dependencies: Path-based (editable) for local development. Production: Switch to the central registry index.
-- Environment Schema: The py_modeller.yaml lives in the source directory and is bundled as package data. Never copy it manually — it should be resolved dynamically from the installed package.
+- Environment Schema: The pymodeller.yaml lives in the source directory and is bundled as package data. Never copy it manually — it should be resolved dynamically from the installed package.
 - Env propagation: Root .env variables must be exported to sub-processes. Sub-project Makefiles should look for a parent .env if a local one is missing.
 
 ### 3. Quality Assurance (CI)
@@ -38,20 +38,11 @@ CRITICAL: Before making any code change, you MUST also read CONVENTIONS.md — i
 - Target line limit: Keep targets short (linting enforces this).
 
 
-#### doctor target convention
-doctor must only call non-interactive check targets:
-```makefile
-doctor: ## Check uv-artifactory configuration
-	@echo "$(ARROW) Check environment..."
-	@$(MAKE) sync-all
-```
-**Never** add interactive prompts (like credential setup) to doctor — it blocks CI.
-
 ### Env Data Model System
-py_modeller.yaml is the single source of truth for all environment variables.
+pymodeller.yaml is the single source of truth for all environment variables. It is in the pymodeller folder.
 
 - Generated artifact: The Pydantic settings classes are auto-generated from YAML. Never edit the generated Python file manually.
-- Workflow: Always edit py_modeller.yaml first, then run make env-generate.
+- Workflow: Always edit pymodeller.yaml first, then run make env-generate.
 - Validation: CI must verify that the generated code is in sync with the YAML spec and that the .env file contains no duplicates.
 
 ### Git Hygiene
@@ -81,3 +72,5 @@ Before suggesting or applying any change, verify it passes:
 - NEVER add unnecessary abstractions — Keep complexity minimal.
 - NEVER hardcode paths to package files — Use dynamic resolution.
 - NEVER add interactive steps to non-interactive targets like doctor or ci.
+- NEVER change any configuration or environment variable without updating pymodeller.yaml and regenerating the Pydantic settings classes.
+- NEVER modify the pyproject.toml
