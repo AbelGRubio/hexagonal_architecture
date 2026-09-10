@@ -176,6 +176,61 @@ models:
         description: default region
         type: str
 
+  - name: Redis Configuration
+    description: Redis connection configuration for cache and pub/sub services.
+    type: settings
+    env_prefix: REDIS_
+    include_general: false
+    variables:
+      - name: host
+        description: Redis host
+        type: str
+        default: localhost
+        required: false
+      - name: port
+        description: Redis port
+        type: int
+        default: 6379
+        required: false
+      - name: db
+        description: Redis database index
+        type: int
+        default: 0
+        required: false
+      - name: username
+        description: Redis username
+        type: str
+        required: false
+      - name: password
+        description: Redis password
+        type: str
+        secret: true
+        required: false
+      - name: ssl
+        description: Use SSL for Redis connections.
+        type: bool
+        default: false
+        required: false
+      - name: decode_responses
+        description: Decode responses as strings.
+        type: bool
+        default: true
+        required: false
+      - name: socket_connect_timeout
+        description: Connection timeout in seconds.
+        type: int
+        default: 5
+        required: false
+      - name: socket_timeout
+        description: Socket timeout in seconds.
+        type: int
+        default: 5
+        required: false
+      - name: url
+        description: Full Redis URL. When set, it takes precedence over host/port values.
+        type: str
+        required: false
+
   - name: order Created
     description: Order creation
     type: model
