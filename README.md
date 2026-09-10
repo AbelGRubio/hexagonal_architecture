@@ -65,6 +65,39 @@ src
 
 ---
 
+## 🛡️ Fault tolerance
+
+The infrastructure is resilient: message delivery to RabbitMQ includes retry policies using the `tenacity` package and a fallback mechanism that persists failures in Redis using `pybreaker`. If sending fails, the behavior is:
+
+1. Automatic retries with exponential backoff (e.g. stop_after_attempt(5) and wait_exponential).
+2. A circuit breaker (`pybreaker`) prevents continuous overload; if the circuit is open or retries are exhausted, the message and its metadata are stored in Redis for later recovery.
+3. A recovery worker (background job) inspects Redis and attempts to re-send messages when the broker becomes available.
+
+Example summary (EN):
+
+```python
+from tenacity import retry, stop_after_attempt, wait_exponential
+from pybreaker import CircuitBreaker
+
+breaker = CircuitBreaker(fail_max=5, reset_timeout=60)
+
+@retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, max=30))
+@breaker
+def send_to_rabbit(payload):
+    # synchronous/async publish to RabbitMQ (pika / aio-pika / aiormq)
+    publish(payload)
+
+try:
+    send_to_rabbit(message)
+except Exception:
+    # Persist payload + metadata in Redis for future retries
+    redis_client.lpush('failed_messages', serialize(message))
+```
+
+This strategy guarantees durability and recoverability against temporary broker failures, preventing event loss and enabling controlled retries.
+
+---
+
 ## ⚡ Automated Code Generation (PyModeller)
 
 A significant portion of the data schemas and exception classes within this project are **automatically generated** using PyModeller.
