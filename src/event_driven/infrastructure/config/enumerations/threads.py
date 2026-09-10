@@ -11,6 +11,7 @@ class ThreadsEnum(StrEnum):
     ORDER = "order"
     PAYMENT = "payment"
     PRODUCER = "producer"
+    ERROR = "error"
     WITHOUT_ASSIGNATION = "without_assignation"
 
     @classmethod

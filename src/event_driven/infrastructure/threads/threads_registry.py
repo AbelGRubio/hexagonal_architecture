@@ -2,7 +2,7 @@ from typing import Type
 
 from event_driven.infrastructure.config.enumerations import ThreadsEnum
 from event_driven.infrastructure.threads import BaseWorkerThread, InventoryThread, NotificationThread, OrderThread, \
-    PaymentThread, ProducerThread
+    PaymentThread, ProducerThread, ErrorThread
 
 # ------------------------------------------------------------------
 # REGISTRIES & ENUMS (Easily extensible to add more workers/brokers)
@@ -15,4 +15,5 @@ THREAD_REGISTRY: dict[ThreadsEnum, Type[BaseWorkerThread]] = {
     ThreadsEnum.ORDER: OrderThread,
     ThreadsEnum.PAYMENT: PaymentThread,
     ThreadsEnum.PRODUCER: ProducerThread,
+    ThreadsEnum.ERROR: ErrorThread,
 }

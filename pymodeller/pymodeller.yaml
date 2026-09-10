@@ -15,6 +15,7 @@ enumerations:
       - order
       - payment
       - producer
+      - error
       - without_assignation
 
 

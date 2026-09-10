@@ -63,3 +63,11 @@ threads:
       exchange: notification-exchange
     error:
       topicOrQueue: notification-dlq
+
+  # Thread 6: Error processor (consumes DLQ / error topics for handling)
+  - name: error
+    consumer:
+      topicOrQueue: errors
+      exchange: errors-exchange
+    error:
+      topicOrQueue: errors-dlq

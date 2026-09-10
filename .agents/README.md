@@ -11,5 +11,6 @@ Entry point for development agents.
 
 ## Skill map
 
-* Thread: skills/thread-creation/SKILL.md — Skill for creating a new threads in code. 
+* Thread: skills/thread-creation/SKILL.md — Skill for creating a new threads in code.
+* PyModeller codegen: skills/pymodeller-codegen/SKILL.md — Skill for keeping YAML definitions and generated models/enums/exceptions synchronized with `pymodeller`.
 

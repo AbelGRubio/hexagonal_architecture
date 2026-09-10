@@ -24,4 +24,4 @@
     entry: uv run pymodeller codegen
     language: system
     pass_filenames: false
-    files: ^py_modeller\.yaml$
+    files: ^(pymodeller/pymodeller\.yaml|pymodeller/exceptions\.yaml)$
