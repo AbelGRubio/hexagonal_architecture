@@ -22,7 +22,7 @@ class NotValidOperativeError(BaseCustomError):
 
     def __init__(
         self,
-        message: str = "No valid operative loaded property",
+        message: str = "",
         code: str | int = "",
         description: str = "The operative is not valid.",
     ) -> None:

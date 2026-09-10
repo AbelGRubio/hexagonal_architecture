@@ -520,3 +520,8 @@ models:
         type: datetime
         description: Notification timestamp
         required: false
+
+      - name: recipient
+        type: str
+        description: Recipient of the notification
+        required: true

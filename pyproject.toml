@@ -32,7 +32,10 @@ dependencies = [
     "pika>=1.4.4",
     "starlette>=1.6.0",
     "peewee>=4.3.0",
-    "pyyaml"
+    "pyyaml",
+    "tenacity>=9.1.4",
+    "redis>=8.1.0",
+    "pybreaker>=1.4.1",
 ]
 
 

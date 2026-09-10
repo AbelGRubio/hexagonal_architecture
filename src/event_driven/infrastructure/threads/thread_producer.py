@@ -43,6 +43,7 @@ class ProducerThread(BaseWorkerThread[CartItemsModel, CartItemsModel]):
             payload_model=CartItemsModel,
             config=config
         )
+        self.counter = 0
         self.interval_seconds: float = interval_seconds
         self._rng: random.Random = random.Random(seed)
         self._counter: int = 0
@@ -58,7 +59,7 @@ class ProducerThread(BaseWorkerThread[CartItemsModel, CartItemsModel]):
         logger.info(f"Producer thread started. Target topic: '{queue_}'.")
         self._is_running = True
 
-        while self._is_running:
+        while self._is_running and self.producer_broker:
             try:
                 payload: CartItemsModel = self._generate_cart_items()
 
@@ -67,9 +68,10 @@ class ProducerThread(BaseWorkerThread[CartItemsModel, CartItemsModel]):
                     message=payload.model_dump(by_alias=True),
                 )
                 logger.info(
-                    f"Successfully published {len(payload.items)} item(s) to '{queue_}'. CartID: {payload.id}."
+                    f"Successfully published {len(payload.items)} item(s) to '{queue_}'. "
+                    f"Nº Chart generated: {self.counter}. CartID: {payload.id}."
                 )
-
+                self.counter += 1
             except Exception as exc:
                 logger.error(f"Error occurred while publishing message: {exc}", exc_info=True)
 

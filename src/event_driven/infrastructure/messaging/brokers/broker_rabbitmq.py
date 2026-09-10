@@ -1,19 +1,31 @@
 """RabbitMQ broker adapter implementation.
 
-This module provides a concrete adapter for RabbitMQ using the pika client.
+This module provides a concrete adapter for RabbitMQ using the pika client
+with resilience patterns using tenacity.
 """
 
+import logging
 import os
 from typing import Any, Generator
 
 import orjson
 import pika
+import pika.exceptions
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+    before_sleep_log,
+)
 
 from .interface_message import IMessageBroker
 
+logger = logging.getLogger(__name__)
+
 
 class RabbitMQAdapter(IMessageBroker):
-    """RabbitMQ adapter implementation using pika."""
+    """RabbitMQ adapter implementation using pika with resilience."""
 
     DEFAULT_PARAMS = {
         "host": "localhost",
@@ -23,7 +35,7 @@ class RabbitMQAdapter(IMessageBroker):
     }
 
     def __init__(self, **kwargs: Any) -> None:
-        """Create a blocking RabbitMQ connection and open its channel."""
+        """Create a blocking RabbitMQ connection and open its channel with retries."""
         connection_params = self._get_default_params()
 
         if "username" in kwargs and "password" in kwargs:
@@ -33,23 +45,49 @@ class RabbitMQAdapter(IMessageBroker):
             )
 
         connection_params |= kwargs
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(**connection_params))
-        self.channel = self.connection.channel()
+        self.connection_params = connection_params
+        self._connect()
 
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type((pika.exceptions.AMQPConnectionError, ConnectionError, TimeoutError)),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True,
+    )
+    def _connect(self) -> None:
+        """Establish connection and channel with retry logic if RabbitMQ is down on startup."""
+        logger.info("Attempting to connect to RabbitMQ...")
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(**self.connection_params))
+        self.channel = self.connection.channel()
+        logger.info("Successfully connected to RabbitMQ.")
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=5),
+        retry=retry_if_exception_type((
+                pika.exceptions.AMQPChannelError,
+                pika.exceptions.AMQPConnectionError,
+                pika.exceptions.ConnectionClosed,
+                pika.exceptions.ChannelClosed,
+                pika.exceptions.ChannelWrongStateError,
+                ConnectionError,
+                TimeoutError,
+        )),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True,
+    )
     def publish(
         self,
         topic_or_queue: str,
         message: dict[str, Any],
         exchange_or_group: str = "",
     ) -> None:
-        """Publish a message to a RabbitMQ queue or exchange.
+        """Publish a message to a RabbitMQ queue or exchange with automatic retries."""
+        if not self.connection or self.connection.is_closed or not self.channel or self.channel.is_closed:
+            logger.warning("RabbitMQ connection or channel found closed during publish. Reconnecting...")
+            self._connect()
 
-        Args:
-            topic_or_queue: Queue name used as routing key when using the default
-                exchange, or the target queue name for direct bindings.
-            message: Message payload to serialize and send.
-            exchange_or_group: Exchange name when a named exchange is used.
-        """
         rk = topic_or_queue
 
         # If publishing to the default exchange, declare the queue.
@@ -58,8 +96,28 @@ class RabbitMQAdapter(IMessageBroker):
         else:
             self.channel.exchange_declare(exchange=exchange_or_group, exchange_type="direct", durable=True)
 
-        self.channel.basic_publish(exchange=exchange_or_group, routing_key=rk, body=orjson.dumps(message))
+        self.channel.basic_publish(
+            exchange=exchange_or_group,
+            routing_key=rk,
+            body=orjson.dumps(message),
+            properties=pika.BasicProperties(delivery_mode=2)
+        )
 
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=2, max=30),
+        retry=retry_if_exception_type((
+                pika.exceptions.AMQPConnectionError,
+                pika.exceptions.StreamLostError,
+                pika.exceptions.ConnectionClosed,
+                pika.exceptions.ChannelClosed,
+                pika.exceptions.ChannelWrongStateError,
+                ConnectionError,
+                TimeoutError,
+        )),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True,
+    )
     def consume(
         self,
         topic_or_queue: str,
@@ -68,15 +126,13 @@ class RabbitMQAdapter(IMessageBroker):
     ) -> Generator[Any, None, None]:
         """Consume messages from a RabbitMQ queue.
 
-        Args:
-            topic_or_queue: Queue name to consume from.
-            exchange_or_group: Optional exchange name to bind to the queue.
-            timeout: Maximum time to wait for a message before returning.
-
-        Yields:
-            The next message body if one is available; otherwise, the generator
-            will terminate its current iteration after the inactivity timeout.
+        Note: Consuming loops are usually continuous generators where reconnection
+        is handled at the worker or higher level, but timeouts are managed via inactivity_timeout.
         """
+        if not self.connection or self.connection.is_closed or not self.channel or self.channel.is_closed:
+            logger.warning("RabbitMQ connection or channel found closed before consume. Reconnecting...")
+            self._connect()
+
         self.channel.basic_qos(prefetch_count=1)
         self.channel.queue_declare(queue=topic_or_queue, durable=True)
 
@@ -96,9 +152,21 @@ class RabbitMQAdapter(IMessageBroker):
 
                 self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
                 yield body
-
+        except (
+                pika.exceptions.AMQPConnectionError,
+                pika.exceptions.StreamLostError,
+                pika.exceptions.ConnectionClosed,
+                pika.exceptions.ChannelClosed,
+                pika.exceptions.ChannelWrongStateError,
+                ConnectionError,
+        ) as exc:
+            logger.error(f"Connection lost during consumption from {topic_or_queue}: {exc}")
+            raise
         finally:
-            self.channel.cancel()
+            try:
+                self.channel.cancel()
+            except Exception:
+                pass
 
     def ack(self, delivery_tag: int) -> None:
         """Acknowledge a specific message delivery tag in RabbitMQ."""

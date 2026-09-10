@@ -34,7 +34,7 @@ class NotificationUseCase:
 
             # Envío real de la notificación a través del adaptador (ej. Email, SMS, Push)
             if self._adapter:
-                self._adapter.send(payload)
+                self._adapter.save(payload)
 
             # Marcar como enviada si el proceso fue exitoso
             payload.status = "SENT"

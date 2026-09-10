@@ -16,6 +16,9 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    restart: always
+    volumes:
+        - redis_data:/data
     networks:
       - event-architecture-network
 
@@ -54,23 +57,26 @@ services:
     networks:
       - event-architecture-network
 
-  app:
-    image: github.com/abelgrubio/hexagonal_architecture:v0.1.0
-    container_name: hexagonal_app
-    environment:
-      - REDIS_HOST=redis
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-    depends_on:
-      - redis
-      - rabbitmq
-      - kafka
-    networks:
-      - event-architecture-network
+  # app:
+  #   image: github.com/abelgrubio/hexagonal_architecture:v0.1.0
+  #   container_name: hexagonal_app
+  #   environment:
+  #     - REDIS_HOST=redis
+  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+  #     - RABBITMQ_HOST=rabbitmq
+  #     - RABBITMQ_PORT=5672
+  #     - RABBITMQ_DEFAULT_USER=guest
+  #     - RABBITMQ_DEFAULT_PASS=guest
+  #   depends_on:
+  #     - redis
+  #     - rabbitmq
+  #     - kafka
+  #   networks:
+  #     - event-architecture-network
 
 networks:
   event-architecture-network:
     driver: bridge
+
+volumes:
+  redis_data:
