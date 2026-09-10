@@ -1,0 +1,44 @@
+# ==========================================
+# MINISTACK (LocalStack u similar)
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ministack
+  namespace: event-architecture
+spec:
+  selector:
+    matchLabels:
+      app: ministack
+  template:
+    metadata:
+      labels:
+        app: ministack
+    spec:
+      containers:
+      - name: ministack
+        image: ministackorg/ministack:1.3-full
+        ports:
+        - containerPort: 4566
+        volumeMounts:
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
+        env:
+        - name: REDIS_HOST
+          value: "redis"
+      volumes:
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ministack
+  namespace: event-architecture
+spec:
+  ports:
+  - port: 4566
+    targetPort: 4566
+  selector:
+    app: ministack

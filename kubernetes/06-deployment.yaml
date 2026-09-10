@@ -1,0 +1,51 @@
+# ==========================================
+# APP (Hexagonal Architecture)
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: event-architecture
+spec:
+  selector:
+    matchLabels:
+      app: hexagonal-app
+  template:
+    metadata:
+      labels:
+        app: hexagonal-app
+    spec:
+      containers:
+      - name: app
+        image: github.com/abelgrubio/hexagonal_architecture:v0.1.0
+        env:
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: REDIS_HOST
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: KAFKA_BOOTSTRAP_SERVERS
+        - name: RABBITMQ_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: RABBITMQ_HOST
+        - name: RABBITMQ_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: RABBITMQ_PORT
+        - name: RABBITMQ_DEFAULT_USER
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: RABBITMQ_DEFAULT_USER
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: RABBITMQ_DEFAULT_PASS
