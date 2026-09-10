@@ -1,5 +1,4 @@
-"""
-Unit tests for the BasePort abstract interface.
+"""Unit tests for the BasePort abstract interface.
 
 This module verifies the correct behavior of the generic BasePort abstract class,
 ensuring that it cannot be instantiated directly and that concrete implementations
@@ -7,7 +6,7 @@ satisfy the required interface contract.
 """
 
 import unittest
-from typing import Optional
+
 from pydantic import BaseModel
 
 # Import BasePort from the corresponding path
@@ -16,6 +15,7 @@ from event_driven.domain.ports.port_base import BasePort
 
 class DummyModel(BaseModel):
     """Auxiliary Pydantic model for testing the generic PayloadT type."""
+
     id: str
     name: str
 
@@ -30,7 +30,7 @@ class DummyPort(BasePort[DummyModel]):
         if entity:
             self.storage[entity.id] = entity
 
-    def get_by_id(self, entity_id: str) -> Optional[DummyModel]:
+    def get_by_id(self, entity_id: str) -> DummyModel | None:
         return self.storage.get(entity_id)
 
     def delete(self, entity_id: str) -> None:
@@ -53,7 +53,7 @@ class TestBasePort(unittest.TestCase):
 
         # Test save and get_by_id
         port.save(entity)
-        retrieved: Optional[DummyModel] = port.get_by_id("123")
+        retrieved: DummyModel | None = port.get_by_id("123")
 
         self.assertIsNotNone(retrieved)
         self.assertEqual(retrieved, entity)
@@ -61,13 +61,13 @@ class TestBasePort(unittest.TestCase):
 
         # Test delete
         port.delete("123")
-        deleted_entity: Optional[DummyModel] = port.get_by_id("123")
+        deleted_entity: DummyModel | None = port.get_by_id("123")
         self.assertIsNone(deleted_entity)
 
     def test_get_non_existent_entity(self) -> None:
         """Verify that retrieving a non-existent ID returns None."""
         port: DummyPort = DummyPort()
-        result: Optional[DummyModel] = port.get_by_id("non-existent-id")
+        result: DummyModel | None = port.get_by_id("non-existent-id")
         self.assertIsNone(result)
 
 

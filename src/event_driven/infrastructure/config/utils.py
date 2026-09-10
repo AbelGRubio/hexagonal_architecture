@@ -1,8 +1,8 @@
 """Resolved for thread config model."""
+
 from typing import Any, get_args
 
-from event_driven.infrastructure.config.schemas import ThreadConfigModel, BrokerConfigModel
-
+from event_driven.infrastructure.config.schemas import BrokerConfigModel, ThreadConfigModel
 
 BROKER_KWARGS = "broker_kwargs"
 BROKER_TYPE = "broker_type"
@@ -11,6 +11,7 @@ TOPIC_OR_QUEUE = "topic_or_queue"
 # ==============================================================================
 # Helper Functions (Modularized Business Logic)
 # ==============================================================================
+
 
 def _get_field_aliases() -> tuple[str, str, str]:
     """Retrieves field aliases for broker kwargs, type, and topic."""
@@ -59,9 +60,7 @@ def _get_broker_section_names() -> list[str]:
 
 
 def _apply_broker_defaults_to_section(
-        broker_dict: dict[str, Any],
-        global_default: str,
-        defaults_by_type: dict[str, dict[str, Any]]
+    broker_dict: dict[str, Any], global_default: str, defaults_by_type: dict[str, dict[str, Any]]
 ) -> None:
     """Mutates a single broker dict by applying fallback types and merging broker_kwargs."""
     kwargs_alias, type_alias, _ = _get_field_aliases()

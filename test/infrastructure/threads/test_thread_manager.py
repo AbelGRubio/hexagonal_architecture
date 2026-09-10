@@ -12,7 +12,6 @@ import pytest
 from event_driven.infrastructure.threads.thread_base import BaseWorkerThread
 from event_driven.infrastructure.threads.thread_manager import ThreadManager
 
-
 # ==========================================
 # Helper Dummy Classes & Fixtures
 # ==========================================
@@ -53,7 +52,6 @@ def test_manager_init_with_threads(mock_worker_thread: MagicMock) -> None:
     assert len(manager._threads) == 1
     assert "dummy_worker_1" in manager._thread_classes
     assert manager._failure_counts["dummy_worker_1"] == 0
-
 
 
 # ==========================================
@@ -154,8 +152,8 @@ def test_start_monitoring_restarts_failed_thread(
 
     manager.start_monitoring()
 
-    #mock_cls.assert_called_once()
-    #recreated_thread.start.assert_called_once()
+    # mock_cls.assert_called_once()
+    # recreated_thread.start.assert_called_once()
     assert manager._failure_counts["dummy_worker_1"] == 0
     # assert manager._threads[0] == recreated_thread
 

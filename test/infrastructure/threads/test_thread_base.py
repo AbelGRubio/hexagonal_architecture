@@ -13,12 +13,12 @@ import pytest
 from pydantic import BaseModel
 
 from event_driven.infrastructure.config.schemas import BrokerConfigModel, ThreadConfigModel
-from event_driven.infrastructure.threads.thread_base import BaseWorkerThread, ErrorEnvelope
-
+from event_driven.infrastructure.threads.thread_base import BaseWorkerThread
 
 # ==========================================
 # Test Concrete Models & Implementations
 # ==========================================
+
 
 class SampleInput(BaseModel):
     """Sample input payload model for testing."""
@@ -60,6 +60,7 @@ class DummyWorkerThread(BaseWorkerThread[SampleInput, SampleOutput]):
 # Fixtures
 # ==========================================
 
+
 @pytest.fixture
 def mock_broker() -> MagicMock:
     """Provide a generic mock message broker."""
@@ -95,6 +96,7 @@ def thread_config() -> ThreadConfigModel:
 # 1. Thread & Broker Initialization Tests
 # ==========================================
 
+
 def test_worker_thread_init_defaults(thread_config: ThreadConfigModel) -> None:
     """Verify worker thread default properties and thread configuration setting."""
     worker: DummyWorkerThread = DummyWorkerThread(config=thread_config)
@@ -128,6 +130,7 @@ def test_init_brokers_creates_configured_brokers(
 # ==========================================
 # 2. Parsing & Validation Tests
 # ==========================================
+
 
 def test_parse_message_valid_json_string(thread_config: ThreadConfigModel) -> None:
     """Verify _parse_message successfully parses a valid JSON string."""
@@ -198,6 +201,7 @@ def test_parse_message_unsupported_type_triggers_dlq(
 # ==========================================
 # 3. Message Publishing & DLQ Tests
 # ==========================================
+
 
 def test_send_output_message_success(
     thread_config: ThreadConfigModel,
@@ -271,6 +275,7 @@ def test_publish_to_dlq_handles_broker_exception(
 # 4. Worker Loop Execution Tests
 # ==========================================
 
+
 def test_run_without_consumer_stops_immediately(
     thread_config: ThreadConfigModel,
     caplog: pytest.LogCaptureFixture,
@@ -313,7 +318,7 @@ def test_run_loop_stops_on_stop_signal(
     """Verify worker loop breaks execution when stop() flag is set."""
     worker: DummyWorkerThread = DummyWorkerThread(config=thread_config)
 
-    def msg_generator() -> Generator[str, None, None]:
+    def msg_generator() -> Generator[str]:
         yield json.dumps({"id": 1, "name": "First"})
         worker.stop()
         yield json.dumps({"id": 2, "name": "Second"})

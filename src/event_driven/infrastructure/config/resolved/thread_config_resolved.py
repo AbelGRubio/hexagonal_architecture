@@ -1,19 +1,23 @@
 """Resolved for thread config model."""
-from enum import Enum
-from typing import Any, Optional
 
-from pydantic import Field, model_validator, BaseModel
+from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field, model_validator
 
 from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
-from event_driven.infrastructure.config.schemas import ThreadConfigModel, BrokerConfigModel
-from event_driven.infrastructure.config.utils import _extract_defaults_by_type, _apply_broker_defaults_to_section, \
-    _get_broker_section_names
+from event_driven.infrastructure.config.schemas import BrokerConfigModel, ThreadConfigModel
+from event_driven.infrastructure.config.utils import (
+    _apply_broker_defaults_to_section,
+    _extract_defaults_by_type,
+    _get_broker_section_names,
+)
 from event_driven.infrastructure.exceptions import MissingConfigurationError
-
 
 # ==============================================================================
 # Main Pydantic Models
 # ==============================================================================
+
 
 class ResolvedThreadConfigModel(ThreadConfigModel):
     """Extends the auto-generated config model by resolving default fallbacks and enforcing rules."""
@@ -42,9 +46,7 @@ class ResolvedThreadConfigModel(ThreadConfigModel):
         consumer_topic = self.consumer.topic_or_queue
         error_topic = f"{consumer_topic}.error" if consumer_topic else "error"
 
-        return self.consumer.model_copy(
-            update={"topic_or_queue": error_topic}
-        )
+        return self.consumer.model_copy(update={"topic_or_queue": error_topic})
 
 
 class ThreadsConfigurations(BaseModel):
@@ -80,8 +82,9 @@ class ThreadsConfigurations(BaseModel):
         return data
 
     def get_thread_config(
-            self, thread_name: ThreadsEnum,
-    ) -> Optional[ResolvedThreadConfigModel]:
+        self,
+        thread_name: ThreadsEnum,
+    ) -> ResolvedThreadConfigModel | None:
         """Finds and returns a thread configuration by name or Enum. Returns None if not found."""
         target_name = thread_name.value if isinstance(thread_name, Enum) else thread_name
 
@@ -91,14 +94,16 @@ class ThreadsConfigurations(BaseModel):
 
         return None
 
-if __name__ == '__main__':
-    import yaml
+
+if __name__ == "__main__":
     from pathlib import Path
+
+    import yaml
 
     path = Path("../threads.yaml")
 
     if path.exists():
-        with open(path, "r", encoding="utf-8") as file:
+        with open(path, encoding="utf-8") as file:
             raw_data: dict[str, Any] = yaml.safe_load(file) or {}
 
         # Carga automática limpia en una sola línea
@@ -109,8 +114,11 @@ if __name__ == '__main__':
             print(f"- Thread: {t.name}")
             if t.consumer:
                 print(
-                    f"  Consumer: {t.consumer.broker_type} -> {t.consumer.topic_or_queue} (Kwargs: {t.consumer.broker_kwargs})")
+                    f"  Consumer: {t.consumer.broker_type} -> {t.consumer.topic_or_queue} (Kwargs: {t.consumer.broker_kwargs})"
+                )
             if t.resolved_error:
-                print(f"  Error: {t.resolved_error.broker_type} -> {t.resolved_error.topic_or_queue} (Kwargs: {t.resolved_error.broker_kwargs})")
+                print(
+                    f"  Error: {t.resolved_error.broker_type} -> {t.resolved_error.topic_or_queue} (Kwargs: {t.resolved_error.broker_kwargs})"
+                )
 
     f = 1

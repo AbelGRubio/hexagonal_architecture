@@ -6,17 +6,18 @@ with resilience patterns using tenacity.
 
 import logging
 import os
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 import orjson
 import pika
 import pika.exceptions
 from tenacity import (
+    before_sleep_log,
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
-    before_sleep_log,
 )
 
 from .interface_message import IMessageBroker
@@ -39,10 +40,7 @@ class RabbitMQAdapter(IMessageBroker):
         connection_params = self._get_default_params()
 
         if "username" in kwargs and "password" in kwargs:
-            kwargs["credentials"] = pika.PlainCredentials(
-                kwargs.pop("username"),
-                kwargs.pop("password")
-            )
+            kwargs["credentials"] = pika.PlainCredentials(kwargs.pop("username"), kwargs.pop("password"))
 
         connection_params |= kwargs
         self.connection_params = connection_params
@@ -66,13 +64,13 @@ class RabbitMQAdapter(IMessageBroker):
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=5),
         retry=retry_if_exception_type((
-                pika.exceptions.AMQPChannelError,
-                pika.exceptions.AMQPConnectionError,
-                pika.exceptions.ConnectionClosed,
-                pika.exceptions.ChannelClosed,
-                pika.exceptions.ChannelWrongStateError,
-                ConnectionError,
-                TimeoutError,
+            pika.exceptions.AMQPChannelError,
+            pika.exceptions.AMQPConnectionError,
+            pika.exceptions.ConnectionClosed,
+            pika.exceptions.ChannelClosed,
+            pika.exceptions.ChannelWrongStateError,
+            ConnectionError,
+            TimeoutError,
         )),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True,
@@ -100,20 +98,20 @@ class RabbitMQAdapter(IMessageBroker):
             exchange=exchange_or_group,
             routing_key=rk,
             body=orjson.dumps(message),
-            properties=pika.BasicProperties(delivery_mode=2)
+            properties=pika.BasicProperties(delivery_mode=2),
         )
 
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_exponential(multiplier=1, min=2, max=30),
         retry=retry_if_exception_type((
-                pika.exceptions.AMQPConnectionError,
-                pika.exceptions.StreamLostError,
-                pika.exceptions.ConnectionClosed,
-                pika.exceptions.ChannelClosed,
-                pika.exceptions.ChannelWrongStateError,
-                ConnectionError,
-                TimeoutError,
+            pika.exceptions.AMQPConnectionError,
+            pika.exceptions.StreamLostError,
+            pika.exceptions.ConnectionClosed,
+            pika.exceptions.ChannelClosed,
+            pika.exceptions.ChannelWrongStateError,
+            ConnectionError,
+            TimeoutError,
         )),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True,
@@ -123,7 +121,7 @@ class RabbitMQAdapter(IMessageBroker):
         topic_or_queue: str,
         exchange_or_group: str | None = None,
         timeout: float = 1.0,
-    ) -> Generator[Any, None, None]:
+    ) -> Generator[Any]:
         """Consume messages from a RabbitMQ queue.
 
         Note: Consuming loops are usually continuous generators where reconnection
@@ -153,12 +151,12 @@ class RabbitMQAdapter(IMessageBroker):
                 self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
                 yield body
         except (
-                pika.exceptions.AMQPConnectionError,
-                pika.exceptions.StreamLostError,
-                pika.exceptions.ConnectionClosed,
-                pika.exceptions.ChannelClosed,
-                pika.exceptions.ChannelWrongStateError,
-                ConnectionError,
+            pika.exceptions.AMQPConnectionError,
+            pika.exceptions.StreamLostError,
+            pika.exceptions.ConnectionClosed,
+            pika.exceptions.ChannelClosed,
+            pika.exceptions.ChannelWrongStateError,
+            ConnectionError,
         ) as exc:
             logger.error(f"Connection lost during consumption from {topic_or_queue}: {exc}")
             raise

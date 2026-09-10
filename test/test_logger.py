@@ -12,6 +12,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from event_driven.logger import (
     DictNormalizerFilter,
     JsonFormatter,
@@ -24,7 +25,7 @@ from event_driven.logger import (
 
 
 @pytest.fixture(autouse=True)
-def reset_logging_and_singleton() -> Generator[None, None, None]:
+def reset_logging_and_singleton() -> Generator[None]:
     """Clean up root handlers and reset LoggerApi static variables before and after each test."""
     root: logging.Logger = logging.getLogger()
     for handler in list(root.handlers):

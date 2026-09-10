@@ -3,8 +3,10 @@ import sys
 
 from event_driven.infrastructure.config.enumerations import ThreadsEnum
 from event_driven.infrastructure.config.init_resolved import get_threads_configurations
-from event_driven.infrastructure.threads import InventoryThread, ThreadManager, ProducerThread, OrderThread, \
-    NotificationThread, PaymentThread
+from event_driven.infrastructure.threads import (
+    ProducerThread,
+    ThreadManager,
+)
 from event_driven.logger import get_logger
 
 logger = get_logger(__name__)
@@ -24,10 +26,11 @@ def main() -> None:
     #   - The class itself (InventoryThread / OrderServiceThread)
     #   - The keyword arguments needed to re-instantiate it if it fails
     manager.add_thread(ProducerThread, config=config.get_thread_config(thread_name=ThreadsEnum.PRODUCER))
-    manager.add_thread(InventoryThread, config=config.get_thread_config(thread_name=ThreadsEnum.INVENTORY))
-    manager.add_thread(OrderThread, config=config.get_thread_config(thread_name=ThreadsEnum.ORDER))
-    manager.add_thread(PaymentThread, config=config.get_thread_config(thread_name=ThreadsEnum.PAYMENT))
-    manager.add_thread(NotificationThread, config=config.get_thread_config(thread_name=ThreadsEnum.NOTIFICATION))
+    # manager.add_thread(InventoryThread, config=config.get_thread_config(thread_name=ThreadsEnum.INVENTORY))
+    # manager.add_thread(OrderThread, config=config.get_thread_config(thread_name=ThreadsEnum.ORDER))
+    # manager.add_thread(PaymentThread, config=config.get_thread_config(thread_name=ThreadsEnum.PAYMENT))
+    # manager.add_thread(NotificationThread, config=config.get_thread_config(thread_name=ThreadsEnum.NOTIFICATION))
+    # manager.add_thread(ErrorThread, config=config.get_thread_config(thread_name=ThreadsEnum.ERROR))
 
     # 3. Define graceful shutdown handler for signals (SIGINT / SIGTERM)
     def shutdown_handler(signum, frame) -> None:

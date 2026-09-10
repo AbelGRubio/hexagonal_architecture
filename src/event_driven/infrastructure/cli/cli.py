@@ -2,13 +2,12 @@
 
 import signal
 import sys
-from typing import Type
 
 import typer
 
 from event_driven.infrastructure.config.enumerations import ThreadsEnum
 from event_driven.infrastructure.config.init_resolved import get_threads_configurations
-from event_driven.infrastructure.threads import ThreadManager, THREAD_REGISTRY, BaseWorkerThread
+from event_driven.infrastructure.threads import THREAD_REGISTRY, BaseWorkerThread, ThreadManager
 from event_driven.logger import get_logger, propagate_loggers
 
 logger = get_logger("CLI")
@@ -26,12 +25,14 @@ app = typer.Typer(
 # CLI COMMANDS
 # ------------------------------------------------------------------
 
+
 @app.command("start")
 def start_worker(
     workers: list[ThreadsEnum] = typer.Argument(
         ...,
         help="The worker thread(s) to launch. Accepts one or multiple values separated by space"
-             " (e.g. 'start producer' or 'start producer inventory').",    ),
+        " (e.g. 'start producer' or 'start producer inventory').",
+    ),
 ) -> None:
     """Start a single worker thread using the parameters defined in the YAML configuration."""
     target_workers = list(dict.fromkeys(workers))
@@ -46,7 +47,7 @@ def start_worker(
     # 2. Register each of the requested workers into the manager
     for worker in target_workers:
         thread_config = config.get_thread_config(thread_name=worker)
-        worker_cls: Type[BaseWorkerThread] = THREAD_REGISTRY[worker]
+        worker_cls: type[BaseWorkerThread] = THREAD_REGISTRY[worker]
         manager.add_thread(worker_cls, config=thread_config)
 
     # 3. Register signals for graceful shutdown

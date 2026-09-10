@@ -8,7 +8,6 @@ import pytest
 
 from event_driven.domain.exceptions.exceptions import BaseCustomError, NotValidOperativeError
 
-
 # ==========================================
 # 1. BaseCustomError Tests
 # ==========================================

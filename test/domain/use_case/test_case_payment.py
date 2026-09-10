@@ -1,5 +1,4 @@
-"""
-Unit tests for the PaymentUseCase domain logic.
+"""Unit tests for the PaymentUseCase domain logic.
 
 This module verifies the correct behavior of the PaymentUseCase class,
 including validation rules, branching logic for successful or failed payments,
@@ -8,12 +7,11 @@ proper mapping to NotificationModel, and exception handling.
 
 import unittest
 from unittest.mock import MagicMock, patch
-from datetime import datetime
-from typing import Optional
+
+from event_driven.domain.schemas import NotificationModel, PaymentModel
 
 # Import schemas and use case according to your project structure
 from event_driven.domain.use_case.case_payment import PaymentUseCase
-from event_driven.domain.schemas import PaymentModel, NotificationModel
 
 
 class TestPaymentUseCase(unittest.TestCase):
@@ -33,11 +31,11 @@ class TestPaymentUseCase(unittest.TestCase):
             user_id="user-789",
             amount=100.50,
             currency="USD",
-            status="SUCCESS"
+            status="SUCCESS",
         )
 
         # Act: Execute the use case
-        result: Optional[NotificationModel] = use_case.execute(payload)
+        result: NotificationModel | None = use_case.execute(payload)
 
         # Assert: Verify returned notification properties for a successful payment
         self.assertIsInstance(result, NotificationModel)
@@ -58,11 +56,11 @@ class TestPaymentUseCase(unittest.TestCase):
             user_id="",  # Test fallback recipient when user_id is empty
             amount=50.00,
             currency="EUR",
-            status="FAILED"
+            status="FAILED",
         )
 
         # Act: Execute the use case
-        result: Optional[NotificationModel] = use_case.execute(payload)
+        result: NotificationModel | None = use_case.execute(payload)
 
         # Assert: Verify returned notification properties for a failed payment
         self.assertIsInstance(result, NotificationModel)
@@ -81,7 +79,7 @@ class TestPaymentUseCase(unittest.TestCase):
             user_id="user-789",
             amount=0.00,
             currency="USD",
-            status="SUCCESS"
+            status="SUCCESS",
         )
 
         # Act & Assert: Check for expected ValueError
@@ -100,13 +98,13 @@ class TestPaymentUseCase(unittest.TestCase):
             user_id="user-789",
             amount=75.00,
             currency="USD",
-            status="SUCCESS"
+            status="SUCCESS",
         )
 
         # Act & Assert: Force an exception during NotificationModel creation using patching
         with patch(
-                "event_driven.domain.use_case.case_payment.NotificationModel",
-                side_effect=Exception("Model generation failure")
+            "event_driven.domain.use_case.case_payment.NotificationModel",
+            side_effect=Exception("Model generation failure"),
         ):
             with self.assertRaises(Exception) as context:
                 use_case.execute(payload)

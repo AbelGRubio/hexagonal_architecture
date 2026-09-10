@@ -10,14 +10,14 @@ import json
 import logging
 import threading
 import traceback
-from typing import Any, Generator, Generic, TypeVar, Optional
+from collections.abc import Generator
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
 from event_driven.infrastructure.config.schemas import ThreadConfigModel
-from event_driven.infrastructure.messaging.brokers import IMessageBroker
 from event_driven.infrastructure.messaging import MessageBrokerFactory
-
+from event_driven.infrastructure.messaging.brokers import IMessageBroker
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
             self.error_broker = self.broker_factory.create_broker(aux_.broker_type, **kwargs_)
 
     @abc.abstractmethod
-    def process_payload(self, payload: PayloadT) -> Optional[OutputT]:
+    def process_payload(self, payload: PayloadT) -> OutputT | None:
         """Execute worker business logic for a validated message.
 
         Args:
@@ -113,7 +113,7 @@ class BaseWorkerThread(threading.Thread, abc.ABC, Generic[PayloadT, OutputT]):
         logger.info(f"Stop signal received for worker '{self.name}'.")
         self._is_running = False
 
-    def read_raw_message(self) -> Generator[Any, None, None]:
+    def read_raw_message(self) -> Generator[Any]:
         """Fetch raw messages from the consumer broker."""
         if not self.consumer_broker or not self.config.consumer or not self.config.consumer.topic_or_queue:
             logger.warning(f"[{self.name}] Consumer broker or topic_or_queue not configured.")

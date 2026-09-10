@@ -1,5 +1,5 @@
 """AUTO-GENERATED SETTINGS MANAGER."""
-# YAML-SHA256: 1922a279b46ef322ba673152f405aa4a1680174a7cb208340d586c4b68f7de94
+# YAML-SHA256: c7f7f8c9cb505433295b24a2ba5dc18e6e58fb57592d1fc13135d7cea72d81d0
 
 from functools import lru_cache
 from pathlib import Path
@@ -10,6 +10,7 @@ from event_driven.infrastructure.config.settings import (
     AwsConfigurationSettings,
     GeneralSettings,
     ProcessSettings,
+    RedisConfigurationSettings,
     ThreadsConfigurationSettings,
 )
 
@@ -59,6 +60,18 @@ def get_process_settings(path: Path | None = None) -> ProcessSettings:
 
 
 @lru_cache(maxsize=1)
+def get_redis_configuration_settings(path: Path | None = None) -> RedisConfigurationSettings:
+    """Return the cached application settings instance for RedisConfigurationSettings.
+
+    Source: None.
+    """
+    # Single file loading
+    path = path if path else Path("None")
+    values = _read_yaml(path)
+    return RedisConfigurationSettings(**values)
+
+
+@lru_cache(maxsize=1)
 def get_threads_configuration_settings(path: Path | None = None) -> ThreadsConfigurationSettings:
     """Return the cached application settings instance for ThreadsConfigurationSettings.
 
@@ -79,10 +92,12 @@ def init_settings(force_reload: bool = False) -> None:
         get_aws_configuration_settings.cache_clear()
         get_general_settings.cache_clear()
         get_process_settings.cache_clear()
+        get_redis_configuration_settings.cache_clear()
         get_threads_configuration_settings.cache_clear()
 
     # Initialize / Warm up cache
     get_aws_configuration_settings()
     get_general_settings()
     get_process_settings()
+    get_redis_configuration_settings()
     get_threads_configuration_settings()

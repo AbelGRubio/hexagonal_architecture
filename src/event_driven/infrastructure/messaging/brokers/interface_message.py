@@ -5,7 +5,8 @@ this project, regardless of the underlying technology.
 """
 
 import abc
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 
 class IMessageBroker(abc.ABC):
@@ -34,7 +35,7 @@ class IMessageBroker(abc.ABC):
         topic_or_queue: str,
         exchange_or_group: str | None = None,
         timeout: float = 1.0,
-    ) -> Generator[Any, None, None]:
+    ) -> Generator[Any]:
         """Consume messages from the target topic or queue.
 
         Args:

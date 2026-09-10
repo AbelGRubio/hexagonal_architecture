@@ -17,7 +17,6 @@ from event_driven.info import (
     info_system,
 )
 
-
 # ==========================================
 # 1. Tests for OS and Environment Info
 # ==========================================

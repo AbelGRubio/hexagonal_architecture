@@ -2,7 +2,6 @@
 import uuid
 from datetime import datetime
 from logging import getLogger
-from typing import Optional
 
 from event_driven.domain.ports import BasePort
 from event_driven.domain.schemas import OrderCreatedModel, PaymentModel
@@ -16,7 +15,7 @@ class ProcessOrderUseCase:
     def __init__(self, adapter: BasePort) -> None:
         self._adapter = adapter  # Accepts ANY object implementing BasePort
 
-    def execute(self, payload: OrderCreatedModel) -> Optional[PaymentModel]:
+    def execute(self, payload: OrderCreatedModel) -> PaymentModel | None:
         # Business logic validation
         if not payload.items:
             raise ValueError("Order must contain at least one item.")
@@ -25,10 +24,7 @@ class ProcessOrderUseCase:
             logger.info(f"Processing use case order: {payload.order_id}")
 
             # 1. Calcular el monto total acumulado de todos los ítems del pedido
-            total_amount = sum(
-                (item.unit_price or 0.0) * (item.quantity or 1)
-                for item in payload.items
-            )
+            total_amount = sum((item.unit_price or 0.0) * (item.quantity or 1) for item in payload.items)
 
             # 2. Construir/transformar el modelo de PaymentModel
             payment = PaymentModel(

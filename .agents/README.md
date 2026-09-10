@@ -1,9 +1,9 @@
 # Hexagonal architecture
 
-Entry point for development agents. 
+Entry point for development agents.
 
 
-## Read first 
+## Read first
 
 1. AGENTS.md — behavioral mandate for agents and developers.
 2. CONVENTIONS.md — tech stack, code conventions, and structural reference.
@@ -13,4 +13,3 @@ Entry point for development agents.
 
 * Thread: skills/thread-creation/SKILL.md — Skill for creating a new threads in code.
 * PyModeller codegen: skills/pymodeller-codegen/SKILL.md — Skill for keeping YAML definitions and generated models/enums/exceptions synchronized with `pymodeller`.
-

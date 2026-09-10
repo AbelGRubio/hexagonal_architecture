@@ -3,7 +3,6 @@
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
@@ -11,6 +10,7 @@ from event_driven.infrastructure.config.resolved import ThreadsConfigurations
 
 DEFAULT_YAML_PATH = Path(__file__).parent / "threads.yaml"
 ENV_VAR_NAME = "ED_THREAD_CONF"
+
 
 def _read_yaml(config_path: Path) -> dict:
     """Read YAML file safely."""
@@ -21,7 +21,7 @@ def _read_yaml(config_path: Path) -> dict:
 
 
 @lru_cache(maxsize=1)
-def get_threads_configurations(path: Optional[Path] = None) -> ThreadsConfigurations:
+def get_threads_configurations(path: Path | None = None) -> ThreadsConfigurations:
     """Return the cached application settings instance for AwsConfigurationSettings.
 
     Source: None.

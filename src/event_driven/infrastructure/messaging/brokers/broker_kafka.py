@@ -8,16 +8,17 @@ import logging
 from typing import Any
 
 import orjson
-from confluent_kafka import Message, Consumer, Producer, KafkaException
+from confluent_kafka import Consumer, KafkaException, Message, Producer
 from tenacity import (
+    before_sleep_log,
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
-    before_sleep_log,
 )
 
 from event_driven.logger import get_logger
+
 from .interface_message import IMessageBroker
 
 logger = get_logger(__name__)
@@ -63,13 +64,13 @@ class KafkaAdapter(IMessageBroker):
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True,
     )
-    def _get_or_create_consumer(self, topic: str, exchange_or_group: str | None = '') -> Consumer:
+    def _get_or_create_consumer(self, topic: str, exchange_or_group: str | None = "") -> Consumer:
         """Return a cached Kafka consumer for the given topic, with automatic retry on failure."""
         if topic not in self.consumers:
             logger.info(f"Creating Kafka consumer for topic '{topic}'...")
             conf: dict[str, Any] = {
                 "bootstrap.servers": self.bootstrap_servers,
-                "group.id": exchange_or_group or 'kafka-group-infra',
+                "group.id": exchange_or_group or "kafka-group-infra",
                 "auto.offset.reset": "earliest",
                 "enable.auto.commit": False,
             }

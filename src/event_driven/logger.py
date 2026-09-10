@@ -111,17 +111,15 @@ class LoggerApi(logging.Logger):
         if not HAS_RICH:
             return None
 
-        custom_theme = Theme(
-            {
-                **DEFAULT_STYLES,
-                "logging.level.detail": "magenta",
-                "logging.level.debug": "cyan",
-                "logging.level.info": "green",
-                "logging.level.warning": "yellow",
-                "logging.level.error": "bold red",
-                "logging.level.critical": "bold white on red",
-            }
-        )
+        custom_theme = Theme({
+            **DEFAULT_STYLES,
+            "logging.level.detail": "magenta",
+            "logging.level.debug": "cyan",
+            "logging.level.info": "green",
+            "logging.level.warning": "yellow",
+            "logging.level.error": "bold red",
+            "logging.level.critical": "bold white on red",
+        })
 
         return Console(
             theme=custom_theme,
@@ -185,7 +183,7 @@ class LoggerApi(logging.Logger):
         """Return the display title associated with a log level."""
         return self._titles_level.get(level, self.name.upper())
 
-    def detail(self, msg: str, *args: Any, **kwargs: Any) -> None:  # ruff: ignore[missing-type-args, missing-type-kwargs]
+    def detail(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log a message at the custom DETAIL severity."""
         if self.isEnabledFor(detail_level):
             super().log(detail_level, msg, *args, **kwargs)

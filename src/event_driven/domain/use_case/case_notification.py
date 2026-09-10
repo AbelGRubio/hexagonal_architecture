@@ -1,6 +1,5 @@
 # domain/use_cases/process_notification.py
 from logging import getLogger
-from typing import Optional
 
 from event_driven.domain.ports import BasePort
 from event_driven.domain.schemas import NotificationModel
@@ -14,7 +13,7 @@ class NotificationUseCase:
     def __init__(self, adapter: BasePort | None = None) -> None:
         self._adapter = adapter  # Accepts ANY object implementing BasePort
 
-    def execute(self, payload: NotificationModel) -> Optional[NotificationModel]:
+    def execute(self, payload: NotificationModel) -> NotificationModel | None:
         # Validaciones de lógica de negocio
         if not payload.notification_id:
             raise ValueError("Notification must contain a valid notification_id.")

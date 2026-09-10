@@ -7,12 +7,9 @@ ThreadConfigModel inspection, and dictionary mutation logic for fallback setting
 from enum import Enum
 from typing import Any
 
-import pytest
-
 from event_driven.infrastructure.config.utils import (
     BROKER_KWARGS,
     BROKER_TYPE,
-    TOPIC_OR_QUEUE,
     _apply_broker_defaults_to_section,
     _extract_defaults_by_type,
     _get_broker_section_names,

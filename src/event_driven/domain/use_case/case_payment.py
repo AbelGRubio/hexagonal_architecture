@@ -2,7 +2,6 @@
 import uuid
 from datetime import datetime
 from logging import getLogger
-from typing import Optional
 
 from event_driven.domain.ports import BasePort
 from event_driven.domain.schemas import NotificationModel, PaymentModel
@@ -16,7 +15,7 @@ class PaymentUseCase:
     def __init__(self, adapter: BasePort | None = None) -> None:
         self._adapter = adapter  # Accepts ANY object implementing BasePort
 
-    def execute(self, payload: PaymentModel) -> Optional[NotificationModel]:
+    def execute(self, payload: PaymentModel) -> NotificationModel | None:
         # Business logic validation
         if payload.amount <= 0:
             raise ValueError("Payment amount must be greater than zero.")

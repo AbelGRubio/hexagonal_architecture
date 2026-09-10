@@ -5,7 +5,6 @@ and graceful shutdown logic triggered during application execution.
 """
 
 import signal
-
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -13,7 +12,6 @@ import pytest
 
 from event_driven.core import main
 from event_driven.infrastructure.config.enumerations import ThreadsEnum
-
 
 # ==========================================
 # Fixtures

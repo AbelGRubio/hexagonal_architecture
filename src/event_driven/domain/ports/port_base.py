@@ -1,5 +1,5 @@
 import abc
-from typing import Generic, Optional, TypeVar
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
@@ -16,7 +16,7 @@ class BasePort(abc.ABC, Generic[PayloadT]):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_by_id(self, entity_id: str) -> Optional[PayloadT]:
+    def get_by_id(self, entity_id: str) -> PayloadT | None:
         """Retrieves an entity or schema by its unique identifier."""
         raise NotImplementedError
 

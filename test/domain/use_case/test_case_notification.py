@@ -1,5 +1,4 @@
-"""
-Unit tests for the NotificationUseCase domain logic.
+"""Unit tests for the NotificationUseCase domain logic.
 
 This module verifies the correct behavior of the NotificationUseCase class,
 including validation rules, interaction with optional adapters, status updates,
@@ -8,11 +7,11 @@ and exception handling.
 
 import unittest
 from unittest.mock import MagicMock
-from typing import Optional
+
+from event_driven.domain.schemas import NotificationModel
 
 # Import schema and use case according to your project structure
 from event_driven.domain.use_case.case_notification import NotificationUseCase
-from event_driven.domain.schemas import NotificationModel
 
 
 class TestNotificationUseCase(unittest.TestCase):
@@ -33,11 +32,11 @@ class TestNotificationUseCase(unittest.TestCase):
             recipient="user@example.com",
             subject="Order Confirmation",
             message="Your order has been placed successfully and is being processed.",
-            status="PENDING"
+            status="PENDING",
         )
 
         # Act: Execute the use case
-        result: Optional[NotificationModel] = use_case.execute(payload)
+        result: NotificationModel | None = use_case.execute(payload)
 
         # Assert: Verify adapter.send was called with the payload and status was updated
         self.mock_adapter.send.assert_called_once_with(payload)
@@ -55,11 +54,11 @@ class TestNotificationUseCase(unittest.TestCase):
             recipient="+123456789",
             subject="Alert",
             message="Your package is out for delivery today.",
-            status="PENDING"
+            status="PENDING",
         )
 
         # Act: Execute the use case
-        result: Optional[NotificationModel] = use_case.execute(payload)
+        result: NotificationModel | None = use_case.execute(payload)
 
         # Assert: Verify it still updates status to SENT even without an adapter
         self.assertIsNotNone(result)
@@ -76,7 +75,7 @@ class TestNotificationUseCase(unittest.TestCase):
             recipient="user@example.com",
             subject="Subject",
             message="Message content here.",
-            status="PENDING"
+            status="PENDING",
         )
 
         # Act & Assert: Check for expected ValueError
@@ -97,7 +96,7 @@ class TestNotificationUseCase(unittest.TestCase):
             recipient="",
             subject="Subject",
             message="Message content here.",
-            status="PENDING"
+            status="PENDING",
         )
 
         # Act & Assert: Check for expected ValueError
@@ -120,7 +119,7 @@ class TestNotificationUseCase(unittest.TestCase):
             recipient="user@example.com",
             subject="Subject",
             message="Message content here.",
-            status="PENDING"
+            status="PENDING",
         )
 
         # Act & Assert: Verify the exception is re-raised properly

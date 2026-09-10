@@ -5,7 +5,8 @@ in-process messaging without requiring an external broker service.
 """
 
 import queue
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 import orjson
 
@@ -51,7 +52,7 @@ class LocalQueueAdapter(IMessageBroker):
         topic_or_queue: str,
         exchange_or_group: str | None = None,
         timeout: float = 1.0,
-    ) -> Generator[Any, None, None]:
+    ) -> Generator[Any]:
         """Consume messages from the queue in a blocking, generator-based pattern.
 
         Args:

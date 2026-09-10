@@ -9,8 +9,8 @@ content. Extend later to integrate alerting or automated retries.
 import logging
 from typing import Optional
 
-from event_driven.infrastructure.threads.thread_base import BaseWorkerThread, ErrorEnvelope
 from event_driven.infrastructure.config.schemas import ThreadConfigModel
+from event_driven.infrastructure.threads.thread_base import BaseWorkerThread, ErrorEnvelope
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,6 @@
 import uuid
 from datetime import datetime
 from logging import getLogger
-from typing import Optional
 
 from event_driven.domain.ports import BasePort
 from event_driven.domain.schemas import CartItemsModel, OrderCreatedModel
@@ -16,7 +15,7 @@ class CheckInventoryUseCase:
     def __init__(self, adapter: BasePort) -> None:
         self._adapter = adapter  # Accepts ANY object implementing BasePort
 
-    def execute(self, payload: CartItemsModel) -> Optional[OrderCreatedModel]:
+    def execute(self, payload: CartItemsModel) -> OrderCreatedModel | None:
         # Business logic validation
         if not payload.items:
             raise ValueError("Order must contain at least one item.")

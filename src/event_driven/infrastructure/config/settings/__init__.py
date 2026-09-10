@@ -3,6 +3,13 @@
 from .aws_configuration_settings import AwsConfigurationSettings
 from .general_settings import GeneralSettings
 from .process_settings import ProcessSettings
+from .redis_configuration_settings import RedisConfigurationSettings
 from .threads_configuration_settings import ThreadsConfigurationSettings
 
-__all__ = ["AwsConfigurationSettings", "GeneralSettings", "ProcessSettings", "ThreadsConfigurationSettings"]
+__all__ = [
+    "AwsConfigurationSettings",
+    "GeneralSettings",
+    "ProcessSettings",
+    "RedisConfigurationSettings",
+    "ThreadsConfigurationSettings",
+]

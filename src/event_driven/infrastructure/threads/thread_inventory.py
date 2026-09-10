@@ -1,12 +1,12 @@
 """Inventory worker thread implementation."""
 
 import logging
-from typing import Optional
 
 from event_driven.domain.schemas import CartItemsModel, OrderCreatedModel
 from event_driven.domain.use_case import CheckInventoryUseCase
 from event_driven.infrastructure.config.schemas import ThreadConfigModel
 from event_driven.infrastructure.persistence.adapter.adapter_check_inventory import AdapterCheckInventory
+
 from .thread_base import BaseWorkerThread
 
 logger = logging.getLogger(__name__)
@@ -33,10 +33,8 @@ class InventoryThread(BaseWorkerThread[CartItemsModel, OrderCreatedModel]):
 
         self.use_case = CheckInventoryUseCase(adapter=db_adapter)
 
-    def process_payload(self, payload: CartItemsModel) -> Optional[OrderCreatedModel]:
+    def process_payload(self, payload: CartItemsModel) -> OrderCreatedModel | None:
         """Process an inventory item and optionally emit an output event."""
-        logger.info(
-            f"Processing inventory for item ID: {payload.id if hasattr(payload, 'id') else 'unknown'}"
-        )
+        logger.info(f"Processing inventory for item ID: {payload.id if hasattr(payload, 'id') else 'unknown'}")
 
         return self.use_case.execute(payload)

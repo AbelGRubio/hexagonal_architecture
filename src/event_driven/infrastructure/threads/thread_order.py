@@ -1,5 +1,4 @@
 """Order worker thread implementation."""
-from typing import Optional
 
 from event_driven.domain.schemas import OrderCreatedModel, PaymentModel
 from event_driven.domain.use_case.case_process_order import ProcessOrderUseCase
@@ -28,7 +27,7 @@ class OrderThread(BaseWorkerThread[OrderCreatedModel, PaymentModel]):
 
         self.use_case = ProcessOrderUseCase(adapter=db_adapter)
 
-    def process_payload(self, payload: OrderCreatedModel) -> Optional[PaymentModel]:
+    def process_payload(self, payload: OrderCreatedModel) -> PaymentModel | None:
         """Process a validated order payload."""
         logger.info(f"Processing order: {payload}")
         return self.use_case.execute(payload)

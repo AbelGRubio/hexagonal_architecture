@@ -4,7 +4,7 @@ import logging
 import random
 import time
 import uuid
-from typing import Final, List
+from typing import Final
 
 from event_driven.domain.schemas import CartItemModel, CartItemsModel
 from event_driven.infrastructure.config.schemas import ThreadConfigModel
@@ -14,17 +14,18 @@ from .thread_base import BaseWorkerThread
 logger = logging.getLogger(__name__)
 
 # Predefined base product catalog names
-PRODUCT_BASE_NAMES: Final[List[str]] = [
+PRODUCT_BASE_NAMES: Final[list[str]] = [
     "Laptop Pro 15",
     "Wireless Mouse",
     "Mechanical Keyboard",
-    "USB-C Monitor 27\"",
+    'USB-C Monitor 27"',
 ]
 
 
 class ProducerThread(BaseWorkerThread[CartItemsModel, CartItemsModel]):
     """Worker thread that generates deterministic, synthetic CartItems messages and sends them to RabbitMQ."""
-    DEFAULT_QUEUE = 'cart-items'
+
+    DEFAULT_QUEUE = "cart-items"
 
     def __init__(
         self,
@@ -39,10 +40,7 @@ class ProducerThread(BaseWorkerThread[CartItemsModel, CartItemsModel]):
             interval_seconds: Delay in seconds between generated messages.
             seed: Seed value for reproducible random sequence generation.
         """
-        super().__init__(
-            payload_model=CartItemsModel,
-            config=config
-        )
+        super().__init__(payload_model=CartItemsModel, config=config)
         self.counter = 0
         self.interval_seconds: float = interval_seconds
         self._rng: random.Random = random.Random(seed)
@@ -55,7 +53,7 @@ class ProducerThread(BaseWorkerThread[CartItemsModel, CartItemsModel]):
     def run(self) -> None:
         """Main execution loop that generates and publishes payload items continuously."""
         self._init_brokers()
-        queue_ = self.config.producer.topic_or_queue or ''
+        queue_ = self.config.producer.topic_or_queue or ""
         logger.info(f"Producer thread started. Target topic: '{queue_}'.")
         self._is_running = True
 
@@ -84,7 +82,7 @@ class ProducerThread(BaseWorkerThread[CartItemsModel, CartItemsModel]):
             CartItemsModel: Payload wrapper holding generated cart items.
         """
         item_count: int = self._rng.randint(1, 4)
-        items: List[CartItemModel] = [self._generate_cart_item() for _ in range(item_count)]
+        items: list[CartItemModel] = [self._generate_cart_item() for _ in range(item_count)]
         unique_id: str = str(uuid.UUID(int=self._rng.getrandbits(128), version=4))
         return CartItemsModel(items=items, id=unique_id)
 

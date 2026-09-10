@@ -4,8 +4,8 @@ This module validates safe YAML file reading, settings instantiation,
 cache warming, and forced cache invalidation using lru_cache.
 """
 
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -19,14 +19,13 @@ from event_driven.infrastructure.config.init_settings import (
     init_settings,
 )
 
-
 # ==========================================
 # Fixtures
 # ==========================================
 
 
 @pytest.fixture(autouse=True)
-def mock_aws_env_and_boto3(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
+def mock_aws_env_and_boto3(monkeypatch: pytest.MonkeyPatch) -> Generator[None]:
     """Mock AWS env vars and intercept boto3 client calls to prevent real S3 network requests."""
     monkeypatch.setenv("AWS_DEFAULT_REGION", "us-east-1")
     monkeypatch.setenv("AWS_REGION", "us-east-1")
@@ -37,15 +36,13 @@ def mock_aws_env_and_boto3(monkeypatch: pytest.MonkeyPatch) -> Generator[None, N
     with patch("boto3.client") as mock_boto_client:
         mock_s3 = MagicMock()
         # Si las fuentes de settings usan get_object
-        mock_s3.get_object.return_value = {
-            "Body": MagicMock(read=MagicMock(return_value=b"{}"))
-        }
+        mock_s3.get_object.return_value = {"Body": MagicMock(read=MagicMock(return_value=b"{}"))}
         mock_boto_client.return_value = mock_s3
         yield
 
 
 @pytest.fixture(autouse=True)
-def clear_caches(mock_aws_env_and_boto3: None) -> Generator[None, None, None]:
+def clear_caches(mock_aws_env_and_boto3: None) -> Generator[None]:
     """Automatically clear all lru_caches before and after every test execution."""
     init_settings(force_reload=True)
     yield
