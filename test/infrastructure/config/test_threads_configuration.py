@@ -1,4 +1,3 @@
-
 """Unit tests for ResolvedThreadConfigModel and ThreadsConfigurations.
 
 This module verifies correct error configuration derivation, model validation
@@ -6,10 +5,9 @@ for default injection, and thread configuration lookup.
 """
 
 import pytest
-from pydantic import ValidationError
 
 from event_driven.infrastructure.config.enumerations import BrokersEnum, ThreadsEnum
-from event_driven.infrastructure.config.schemas import BrokerConfigModel, ThreadConfigModel
+from event_driven.infrastructure.config.schemas import BrokerConfigModel
 from event_driven.infrastructure.config.resolved import (
     ResolvedThreadConfigModel,
     ThreadsConfigurations,
@@ -95,11 +93,9 @@ class TestThreadsConfigurations:
 
     def test_get_thread_config_found_by_enum(self) -> None:
         """Verify get_thread_config returns the correct thread when queried using ThreadsEnum."""
-        # Suponiendo que ThreadsEnum.PRODUCER.value sea "producer"
         thread_model = ResolvedThreadConfigModel(name=ThreadsEnum.PRODUCER)
         config = ThreadsConfigurations(threads=[thread_model])
 
-        # Probando pasando el Enum directamente
         result = config.get_thread_config(ThreadsEnum.PRODUCER)
         assert result == thread_model
 

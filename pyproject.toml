@@ -46,13 +46,13 @@ docker = [
     "opentelemetry-sdk",
 ]
 
-# streamlit = [
-#     "streamlit>=1.30.0",
-#     "streamlit-aggrid>=0.4.14",
-#     "streamlit-option-menu>=0.4.3",
-#     "streamlit-ace>=0.5.0",
-#     "streamlit-lottie>=0.2.3",
-# ]
+streamlit = [
+    "streamlit>=1.30.0",
+    #"streamlit-aggrid>=0.4.14",
+    #"streamlit-option-menu>=0.4.3",
+    #"streamlit-ace>=0.5.0",c
+    #"streamlit-lottie>=0.2.3",
+]
 
 test = [
     "peewee",
@@ -73,7 +73,7 @@ dev = [
     "ty>=0.0.17",
     "python-semantic-release==10.5.3",
     "twine",
-    "pymodeller>=0.9.2"
+    "pymodeller>=0.9.4"
 ]
 
 docs = [
@@ -297,5 +297,5 @@ build-backend = "hatchling.build"
 event-driven = "event_driven.infrastructure.cli.cli:app"
 
 
-[tool.uv.sources]
-pymodeller = { path = "../pymodeller", editable = true }
+# [tool.uv.sources]
+# pymodeller = { path = "../pymodeller", editable = true }
