@@ -12,8 +12,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 from typer.testing import CliRunner
 
-from event_driven.infrastructure.cli.cli import app
-from event_driven.infrastructure.config.enumerations import ThreadsEnum
+with patch("event_driven.infrastructure.config.init_pybreaker.broker_pybreaker") as mock_breaker:
+    mock_breaker.return_value = lambda f: f
+    from event_driven.infrastructure.cli.cli import app
+    from event_driven.infrastructure.config.enumerations import ThreadsEnum
 
 runner: CliRunner = CliRunner()
 

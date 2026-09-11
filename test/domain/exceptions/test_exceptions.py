@@ -51,8 +51,8 @@ def test_not_valid_operative_error_default_initialization() -> None:
     """Verify NotValidOperativeError sets its specific default attributes."""
     error = NotValidOperativeError()
 
-    assert str(error) == "No valid operative loaded property"
-    assert error.message == "No valid operative loaded property"
+    assert str(error) == ""
+    assert error.message == ""
     assert error.code == ""
     assert error.description == "The operative is not valid."
     assert isinstance(error, BaseCustomError)

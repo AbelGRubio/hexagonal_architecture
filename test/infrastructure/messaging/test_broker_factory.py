@@ -9,11 +9,13 @@ BrokerNotFoundError for unsupported or invalid broker types.
 import unittest
 from unittest.mock import MagicMock, patch
 
-from event_driven.infrastructure.config.enumerations.brokers import BrokersEnum
-from event_driven.infrastructure.exceptions.exceptions import BrokerNotFoundError
+with patch("event_driven.infrastructure.config.init_pybreaker.broker_pybreaker") as mock_breaker:
+    mock_breaker.return_value = lambda f: f
+    from event_driven.infrastructure.config.enumerations.brokers import BrokersEnum
+    from event_driven.infrastructure.exceptions.exceptions import BrokerNotFoundError
 
-# Import factory, enum, and exception according to your project structure
-from event_driven.infrastructure.messaging.broker_factory import MessageBrokerFactory
+    # Import factory, enum, and exception according to your project structure
+    from event_driven.infrastructure.messaging.broker_factory import MessageBrokerFactory
 
 
 class TestMessageBrokerFactory(unittest.TestCase):

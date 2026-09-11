@@ -93,32 +93,3 @@ class ThreadsConfigurations(BaseModel):
                 return thread
 
         return None
-
-
-if __name__ == "__main__":
-    from pathlib import Path
-
-    import yaml
-
-    path = Path("../threads.yaml")
-
-    if path.exists():
-        with open(path, encoding="utf-8") as file:
-            raw_data: dict[str, Any] = yaml.safe_load(file) or {}
-
-        # Carga automática limpia en una sola línea
-        config = ThreadsConfigurations.model_validate(raw_data)
-
-        print(f"Cargados {len(config.threads)} hilos correctamente.")
-        for t in config.threads:
-            print(f"- Thread: {t.name}")
-            if t.consumer:
-                print(
-                    f"  Consumer: {t.consumer.broker_type} -> {t.consumer.topic_or_queue} (Kwargs: {t.consumer.broker_kwargs})"
-                )
-            if t.resolved_error:
-                print(
-                    f"  Error: {t.resolved_error.broker_type} -> {t.resolved_error.topic_or_queue} (Kwargs: {t.resolved_error.broker_kwargs})"
-                )
-
-    f = 1

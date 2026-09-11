@@ -57,7 +57,7 @@ exceptions:
 
   - class_name: NotValidOperative
     status_code: 500
-    detail: No valid operative loaded property
+    detail: No valid operative loaded property.
     description: The operative is not valid.
     destination: domain
     is_http: false
