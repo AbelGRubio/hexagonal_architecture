@@ -47,6 +47,14 @@ class RabbitMQAdapter(IMessageBroker):
         self.connection_params = connection_params
         self._connect()
 
+    @property
+    def channel(self) -> pika.adapters.blocking_connection.BlockingChannel:
+        """Propiedad que devuelve el canal activo, reconectando automáticamente si está cerrado."""
+        if not self.connection or self.connection.is_closed or not self._channel or self._channel.is_closed:
+            logger.warning("Conexión o canal inactivo detectado a través de la propiedad. Reconectando...")
+            self._connect()
+        return self._channel
+
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_exponential(multiplier=1, min=2, max=10),
@@ -58,7 +66,7 @@ class RabbitMQAdapter(IMessageBroker):
         """Establish connection and channel with retry logic if RabbitMQ is down on startup."""
         logger.info("Attempting to connect to RabbitMQ...")
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(**self.connection_params))
-        self.channel = self.connection.channel()
+        self._channel = self.connection.channel()
         logger.info("Successfully connected to RabbitMQ.")
 
     @broker_pybreaker()
@@ -130,9 +138,6 @@ class RabbitMQAdapter(IMessageBroker):
         Note: Consuming loops are usually continuous generators where reconnection
         is handled at the worker or higher level, but timeouts are managed via inactivity_timeout.
         """
-        if not self.connection or self.connection.is_closed or not self.channel or self.channel.is_closed:
-            logger.warning("RabbitMQ connection or channel found closed before consume. Reconnecting...")
-            self._connect()
 
         self.channel.basic_qos(prefetch_count=1)
         self.channel.queue_declare(queue=topic_or_queue, durable=True)
@@ -162,6 +167,11 @@ class RabbitMQAdapter(IMessageBroker):
             ConnectionError,
         ) as exc:
             logger.error(f"Connection lost during consumption from {topic_or_queue}: {exc}")
+            try:
+                if self.connection and self.connection.is_open:
+                    self.connection.close()
+            except Exception:
+                pass
             raise
         finally:
             try:
