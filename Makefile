@@ -23,6 +23,7 @@ include make/docs.mk
 include make/qa.mk
 include make/settings.mk
 include make/proxy.mk
+include make/run.mk
 include make/setup.mk
 include make/uv.mk
 

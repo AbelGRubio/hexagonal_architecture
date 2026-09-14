@@ -57,22 +57,22 @@ services:
   #   networks:
   #     - event-architecture-network
 
-  app:
-    image: github.com/abelgrubio/hexagonal_architecture:v0.1.0
-    environment:
-      - REDIS__HOST=redis
-      - REDIS__DECODE_RESPONSES=false
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-      - RABBITMQ_HOST=toxiproxy
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-    depends_on:
-      - redis
-      - rabbitmq
-      - toxiproxy
-    networks:
-      - event-architecture-network
+  # app:
+  #   image: github.com/abelgrubio/hexagonal_architecture:v0.1.0
+  #   environment:
+  #     - REDIS__HOST=redis
+  #     - REDIS__DECODE_RESPONSES=false
+  #     - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+  #     - RABBITMQ_HOST=toxiproxy
+  #     - RABBITMQ_PORT=5672
+  #     - RABBITMQ_DEFAULT_USER=guest
+  #     - RABBITMQ_DEFAULT_PASS=guest
+  #   depends_on:
+  #     - redis
+  #     - rabbitmq
+  #     - toxiproxy
+  #   networks:
+  #     - event-architecture-network
 
   toxiproxy:
     image: ghcr.io/shopify/toxiproxy:2.9.0

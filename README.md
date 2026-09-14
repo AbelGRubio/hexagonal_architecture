@@ -67,13 +67,15 @@ src
 
 ## 🛡️ Fault tolerance
 
-The infrastructure is resilient: message delivery to RabbitMQ includes retry policies using the `tenacity` package and a fallback mechanism that persists failures in Redis using `pybreaker`. If sending fails, the behavior is:
+This application is designed to continue operating even when the RabbitMQ broker becomes temporarily unavailable. The fault-tolerance flow is based on three mechanisms:
 
-1. Automatic retries with exponential backoff (e.g. stop_after_attempt(5) and wait_exponential).
-2. A circuit breaker (`pybreaker`) prevents continuous overload; if the circuit is open or retries are exhausted, the message and its metadata are stored in Redis for later recovery.
-3. A recovery worker (background job) inspects Redis and attempts to re-send messages when the broker becomes available.
+1. Automatic retry with exponential backoff using `tenacity`.
+2. Circuit breaking with `pybreaker` to avoid repeatedly hammering a failing broker.
+3. Message persistence in Redis so failed events can be retried later when the service recovers.
 
-Example summary (EN):
+If a publish fails, the app does not simply crash. Instead, it retries several times, stops after a configured limit, opens the circuit breaker, and stores the failed message along with its metadata in Redis. A background recovery worker later inspects that queue and resends the events once RabbitMQ is available again.
+
+Example summary:
 
 ```python
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -84,17 +86,63 @@ breaker = CircuitBreaker(fail_max=5, reset_timeout=60)
 @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, max=30))
 @breaker
 def send_to_rabbit(payload):
-    # synchronous/async publish to RabbitMQ (pika / aio-pika / aiormq)
     publish(payload)
 
 try:
     send_to_rabbit(message)
 except Exception:
-    # Persist payload + metadata in Redis for future retries
     redis_client.lpush('failed_messages', serialize(message))
 ```
 
-This strategy guarantees durability and recoverability against temporary broker failures, preventing event loss and enabling controlled retries.
+This prevents event loss and ensures the system can recover after a temporary outage without requiring a manual replay of all messages.
+
+### How to test the fault-tolerance flow locally
+
+To validate the behavior in a local environment, follow these steps:
+
+1. Start the required services:
+
+```bash
+docker compose up -d
+```
+
+This brings up the infrastructure dependencies, including RabbitMQ and the auxiliary services needed by the project.
+
+2. Configure the Toxiproxy route to RabbitMQ:
+
+```bash
+make proxy-setup
+```
+
+This redirects traffic from the application to the proxy, which allows you to simulate broker failures safely.
+
+3. Run the application:
+
+```bash
+make run
+```
+
+4. Simulate a RabbitMQ outage:
+
+```bash
+make proxy-disable
+```
+
+When the proxy is disabled, the service will experience a temporary failure in the broker connection. Depending on the retry and circuit-breaker policies, the application may pause or slow down while waiting for recovery, but it should not lose events permanently because they are queued for retry in Redis.
+
+5. Restore the connection:
+
+```bash
+make proxy-enable
+```
+
+You can check the proxy state at any time with:
+
+```bash
+make proxy-status
+```
+
+Once the proxy is re-enabled, the app can resume normal traffic and the recovery worker can re-send any pending messages. This is the practical demonstration that the system has fault tolerance: it tolerates a broker outage, pauses according to policy, and automatically recovers when connectivity is restored.
 
 ---
 
